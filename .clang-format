@@ -7,4 +7,6 @@ TabWidth: 4
 ---
 Language: Cpp
 AllowShortFunctionsOnASingleLine: Empty
+SeparateDefinitionBlocks: Always
+AccessModifierOffset: -4
 ---
