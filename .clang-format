@@ -1,0 +1,10 @@
+# -*- mode: yaml -*-
+---
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: ForIndentation
+TabWidth: 4
+---
+Language: Cpp
+AllowShortFunctionsOnASingleLine: Empty
+---
