@@ -38,9 +38,13 @@ function(git_version)
 		set(ARGS_OUTPUT_VERSION PROJECT_VERSION)
 	endif(NOT ARGS_OUTPUT_VERSION)
 
-	set(GitVersion_ARGS PROJECT_SOURCE ${ARGS_PROJECT_SOURCE})
+	set(GitVersion_ARGS #
+		PROJECT_SOURCE ${ARGS_PROJECT_SOURCE} #
+		VERSION_FILE ${CMAKE_CURRENT_BINARY_DIR}/.version
+	)
+
 	if(DEFINED ARGS_FALLBACK_VERSION)
-		list(APPEND GitVersion_ARGS ${ARGS_FALLBACK_VERSION})
+		list(APPEND GitVersion_ARGS FALLBACK_VERSION ${ARGS_FALLBACK_VERSION})
 	endif(DEFINED ARGS_FALLBACK_VERSION)
 
 	list(JOIN GitVersion_ARGS "\\;" GitVersion_ARGS)
@@ -52,7 +56,6 @@ function(git_version)
 			-DGitVersion_ARGS:STRING=${GitVersion_ARGS} #
 			-P ${CMAKE_CURRENT_FUNCTION_LIST_FILE} #
 			COMMAND_ERROR_IS_FATAL ANY #
-			COMMAND_ECHO STDOUT
 	)
 
 	set(version_file ${CMAKE_CURRENT_BINARY_DIR}/.version)
@@ -106,7 +109,7 @@ function(_git_version_from_git_describe)
 	endforeach(a ${ARGS_OneValue})
 
 	if(NOT ARGS_ENSURE)
-		set(message_type AUTHOR_WARNING)
+		set(message_type NOTICE)
 	else(NOT ARGS_ENSURE)
 		set(message_type FATAL_ERROR)
 	endif(NOT ARGS_ENSURE)
@@ -122,17 +125,21 @@ function(_git_version_from_git_describe)
 		ERROR_STRIP_TRAILING_WHITESPACE
 		RESULT_VARIABLE git_describe_result
 	)
+
 	if(NOT git_describe_result EQUAL 0)
-		message(${message_type}
-				"GitVersion: could not run git describe: ${git_describe_error}"
+		message(
+			${message_type}
+			"GitVersion: could not run git describe: ${git_describe_error}, using fallback version"
 		)
+		return()
 	endif(NOT git_describe_result EQUAL 0)
 
 	# Match any part containing digits and periods (strips out rc and so on)
 	if(NOT describe_name MATCHES "^([v]?([0-9\\.]+).*)")
 		message(${message_type} "GitVersion: Version tag is ill-formatted\n"
-				"  Describe-name: ${describe_name}"
+				"  Describe-name: ${describe_name}, using fallback version."
 		)
+		return()
 	endif()
 
 	set(${ARGS_OUTPUT_VERSION}
@@ -144,16 +151,27 @@ endfunction(_git_version_from_git_describe)
 function(_git_version_run)
 	set(ARGS_Options)
 
-	set(ARGS_OneValue "")
-	list(APPEND ARGS_OneValue #
-		 PROJECT_SOURCE #
-		 FALLBACK_VERSION #
+	set(ARGS_OneValue
+		ARGS_OneValue #
+		PROJECT_SOURCE #
+		VERSION_FILE #
+		FALLBACK_VERSION #
 	)
 	set(ARGS_MultiValue "")
 
 	cmake_parse_arguments(
 		ARGS "${ARGS_Options}" "${ARGS_OneValue}" "${ARGS_MultiValue}" ${ARGN}
 	)
+
+	set(REQUIRED_ARGS PROJECT_SOURCE VERSION_FILE)
+
+	foreach(a ${REQUIRED_ARGS})
+		if(NOT DEFINED ARGS_${a})
+			message(
+				FATAL_ERROR "GitVersion:_run missing required ${a} argument"
+			)
+		endif(NOT DEFINED ARGS_${a})
+	endforeach(a ${REQUIRED_ARGS})
 
 	if(NOT DEFINED ARGS_PROJECT_SOURCE)
 		message(
@@ -173,17 +191,14 @@ function(_git_version_run)
 		OUTPUT_VERSION describe_version #
 		${git_describe_args}
 	)
-	message(STATUS "describe_version: ${describe_version}")
-	set(version_file ${CMAKE_CURRENT_BINARY_DIR}/.version)
-	message(STATUS "version_file: ${version_file}")
-	if(EXISTS ${version_file})
-		file(READ ${version_file} version_file_content)
+	if(EXISTS ${ARGS_VERSION_FILE})
+		file(READ ${ARGS_VERSION_FILE} version_file_content)
 		if(version_file_content EQUAL describe_version)
 			return()
 		endif()
-	endif(EXISTS ${version_file})
+	endif(EXISTS ${ARGS_VERSION_FILE})
 
-	file(WRITE ${version_file} ${describe_version})
+	file(WRITE ${ARGS_VERSION_FILE} ${describe_version})
 
 endfunction(_git_version_run)
 
