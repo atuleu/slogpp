@@ -68,7 +68,7 @@ function(git_version)
 		COMMAND
 			${CMAKE_COMMAND} #
 			-DGitVersion_RUN:BOOL=True #
-			-DGitVersion_ARGS:STRING=${GitVersion_ARGS} #
+			-DGitVersion_ARGS:STRING="${GitVersion_ARGS}" #
 			-P ${CMAKE_CURRENT_FUNCTION_LIST_FILE} #
 			COMMAND_ERROR_IS_FATAL ANY #
 	)

@@ -14,4 +14,8 @@ project(
 	VERSION ${PROJECT_VERSION} #
 )
 
-message(STATUS "Version is ${PROJECT_VERSION}")
+set(SRC_FILES src/slog++.cpp)
+
+set(HDR_FILES include/slog++/Sink.hpp include/slog++/Logger.hpp)
+
+add_library(slog++ SHARED ${SRC_FILES} ${HDR_FILES})
