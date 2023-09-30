@@ -14,8 +14,39 @@ project(
 	VERSION ${PROJECT_VERSION} #
 )
 
-set(SRC_FILES src/slog++.cpp)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED On)
 
-set(HDR_FILES include/slog++/Sink.hpp include/slog++/Logger.hpp)
+add_subdirectory(include/slog++)
 
-add_library(slog++ SHARED ${SRC_FILES} ${HDR_FILES})
+include_directories(include)
+
+add_library(slog++ SHARED ${HDR_FILES} src/slog++.cpp)
+
+include(FetchContent)
+FetchContent_Declare(
+	googletest
+	URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+
+set(gtest_force_shared_crt
+	On
+	CACHE BOOL "" FORCE
+)
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+add_subdirectory(tests)
+
+add_executable(slog++-tests ${TEST_SRC_FILES} ${TEST_HDR_FILES})
+target_link_libraries(slog++-tests GTest::gtest_main slog++)
+
+include(GoogleTest)
+gtest_discover_tests(slog++-tests)
+
+add_custom_target(
+	check
+	COMMAND ${CMAKE_CTEST_COMMAND} ARGS --output-on-failure
+	DEPENDS slog++-tests
+)
