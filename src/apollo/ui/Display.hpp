@@ -2,6 +2,8 @@
 
 #include <memory>
 
+// Note: glew need to be included before OpenGL
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 class Display {
@@ -17,6 +19,8 @@ private:
 	Display();
 
 	void Draw();
+	void InitOpenGL();
 
 	WindowPtr d_window;
+	GLuint d_pbos;
 };
