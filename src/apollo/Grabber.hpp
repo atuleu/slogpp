@@ -5,14 +5,11 @@
 namespace fort {
 namespace apollo {
 
-class Buffer {
-public:
-	typedef std::unique_ptr<Buffer> Ptr;
+struct Buffer {
+	typedef std::unique_ptr<Buffer, void (*)(Buffer *)> Ptr;
 
-	virtual ~Buffer();
-
-protected:
-	const void *data;
+	void  *Data;
+	size_t Size;
 };
 
 class Grabber {
@@ -22,9 +19,13 @@ public:
 
 	virtual ~Grabber();
 
-	virtual void AnnounceBuffer(void *buffer, size_t size);
+	virtual void AnnounceBuffer(Buffer &&buffer);
 
 	virtual Buffer::Ptr Grab(int timeout = 0) const;
+
+	virtual void Start() = 0;
+
+	virtual void Stop() = 0;
 };
 
 } // namespace apollo

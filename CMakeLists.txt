@@ -26,6 +26,8 @@ include(GoogleTest)
 
 add_custom_target(check ALL ${CMAKE_CTEST_COMMAND} ARGS --output-on-failure)
 
+add_subdirectory(src/slog++)
+
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Eigen3 REQUIRED)
