@@ -51,10 +51,6 @@ void Display::InitOpenGL() {
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
-
-	glGenBuffer(2, d_pbos);
-	for (int i = 0; i < 2; i++) {
-	}
 }
 
 void Display::Draw() {}

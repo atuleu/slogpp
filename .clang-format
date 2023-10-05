@@ -9,4 +9,7 @@ Language: Cpp
 AllowShortFunctionsOnASingleLine: Empty
 SeparateDefinitionBlocks: Always
 AccessModifierOffset: -4
+AlignConsecutiveAssignments: AcrossComments
+AlignConsecutiveDeclarations: AcrossComments
+AlignConsecutiveMacros: AcrossComments
 ---

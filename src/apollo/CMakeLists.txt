@@ -4,11 +4,15 @@ set(SRC_FILES #
     main.cpp #
     ui/Display.cpp #
     ui/VertexBufferObject.cpp #
+    Grabber.cpp #
+    StubGrabber.cpp #
 )
 
 set(HDR_FILES #
     ui/Display.hpp #
     ui/VertexBufferObject.hpp #
+    Grabber.hpp #
+    StubGrabber.hpp #
 )
 
 set(TEST_SRC_FILES utils/DeferTest.cpp)
