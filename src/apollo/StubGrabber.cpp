@@ -16,25 +16,10 @@ StubGrabber::StubGrabber(const Size &size, float FPS,
 	}
 }
 
-void StubGrabber::AnnounceBuffer(void *buffer, size_t size) {
-	if (size < d_size.ByteSize()) {
-		throw std::invalid_argument(
-		    "Invalid buffer size " + std::to_string(size) +
-		    "needed : " + std::to_string(d_size.ByteSize()));
-	}
-
-	d_fifo.push_back(buffer);
-}
+void StubGrabber::AnnounceBuffer(Buffer &&buffer) {}
 
 Buffer::Ptr StubGrabber::Grab(int timeout) {
-
-	defer {
-		d_index = (d_index + 1) % d_files.size();
-	};
-
-	if (d_lastRead[d_files[d_index]] == d_fifo.front()) {
-		return std::make_unique<Buffer>(new Buffer{d_fifo.front()});
-	}
+	return Buffer::Ptr(NULL, [](Buffer *) {});
 }
 
 } // namespace apollo

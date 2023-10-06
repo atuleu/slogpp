@@ -17,11 +17,11 @@ class Grabber {
 public:
 	typedef std::unique_ptr<Grabber> Ptr;
 
-	virtual ~Grabber();
+	virtual ~Grabber(){};
 
-	virtual void AnnounceBuffer(Buffer &&buffer);
+	virtual void AnnounceBuffer(Buffer &&buffer) = 0;
 
-	virtual Buffer::Ptr Grab(int timeout = 0) const;
+	virtual Buffer::Ptr Grab(int timeout = 0) const = 0;
 
 	virtual void Start() = 0;
 

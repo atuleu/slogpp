@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Attribute.hpp"
 #include <memory>
 #include <type_traits>
 
@@ -15,79 +16,56 @@ enum Level {
 	Critical = 12,
 };
 
-template <typename Key, typename Value> struct LogField {
-	Key   key;
-	Value value;
-};
-
-template <
-    typename Key, typename Value,
-    typename std::enable_if<std::is_integral<Value>::value, bool>::value = true>
-void ToJSON(const LogField<Key, Value> &field, std::string &buffer);
-
-template <typename Key, typename Value,
-          typename std::enable_if<std::is_floating_point<Value>::value,
-                                  bool>::value = true>
-void ToJSON(const LogField<Key, Value> &field, std::string &buffer);
-
-template <
-    typename Key, typename Value,
-    typename std::enable_if<std::is_convertible<Value, std::string>::value,
-                            bool>::value = true>
-void ToJSON(const LogField<Key, Value> &field, std::string &buffer);
-
-template <typename Str, typename Value>
-LogField<Str, Value> Field(const Str &key, Value &&value);
-
-template <typename... Fields> class Logger {
+template <size_t N> class Logger {
 public:
+	template <std::enable_if_t<N == 0, int> = 0>
 	Logger(const std::shared_ptr<Sink> &sink);
 
-	template <typename... NewFields>
-	Logger<Fields..., NewFields...> With(NewFields &&...fields) const;
+	template <std::enable_if_t<N != 0, int> = 0>
+	Logger(const std::shared_ptr<Sink> &sink,
+	       std::array<Attribute, N>   &&attributes);
 
-	Logger<Fields..., LogField<const char *, const char *>>
-	WithError(const char *what) const;
+	template <typename... Fields>
+	Logger<N + sizeof...(Fields)> With(Fields &&...fields) const;
 
-	template <typename Str, typename... NewFields>
-	void Log(Level level, const Str &msg, NewFields &&...fields) const;
+	Logger<N + 1> WithError(const char *what) const;
 
-	template <typename Str, typename... NewFields>
-	inline void Trace(const Str &msg, NewFields &&...fields) const {
+	template <typename Str, typename... Fields>
+	void Log(Level level, const Str &msg, Fields &&...fields) const;
+
+	template <typename Str, typename... Fields>
+	inline void Trace(const Str &msg, Fields &&...fields) const {
 		Log(Level::Trace, msg, std::forward(fields...));
 	};
 
-	template <typename Str, typename... NewFields>
-	inline void Debug(const Str &msg, NewFields &&...fields) const {
+	template <typename Str, typename... Fields>
+	inline void Debug(const Str &msg, Fields &&...fields) const {
 		Log(Level::Debug, msg, std::forward(fields...));
 	};
 
-	template <typename Str, typename... NewFields>
-	inline void Info(const Str &msg, NewFields &&...fields) const {
+	template <typename Str, typename... Fields>
+	inline void Info(const Str &msg, Fields &&...fields) const {
 		Log(Level::Info, msg, std::forward(fields...));
 	};
 
-	template <typename Str, typename... NewFields>
-	inline void Warn(const Str &msg, NewFields &&...fields) const {
+	template <typename Str, typename... Fields>
+	inline void Warn(const Str &msg, Fields &&...fields) const {
 		Log(Level::Warn, msg, std::forward(fields...));
 	};
 
-	template <typename Str, typename... NewFields>
-	inline void Error(const Str &msg, NewFields &&...fields) const {
+	template <typename Str, typename... Fields>
+	inline void Error(const Str &msg, Fields &&...fields) const {
 		Log(Level::Error, msg, std::forward(fields...));
 	};
 
-	template <typename Str, typename... NewFields>
-	inline void Critical(const Str &msg, NewFields &&...fields) const {
+	template <typename Str, typename... Fields>
+	inline void Critical(const Str &msg, Fields &&...fields) const {
 		Log(Level::Critical, msg, std::forward(fields...));
 	};
 
 private:
-	static Logger Create(const std::shared_ptr<Sink> &sink,
-	                     std::tuple<Fields...>      &&fields);
-
-	std::shared_ptr<Sink> d_sink;
-	std::tuple<Fields...> d_fields;
+	std::shared_ptr<Sink>    d_sink;
+	std::array<Attribute, N> d_attributes;
 };
 
 } // namespace slog

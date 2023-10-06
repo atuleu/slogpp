@@ -13,7 +13,7 @@ class StubGrabber : public Grabber {
 	StubGrabber(const Size &size, float FPS,
 	            std::initializer_list<std::string> files);
 
-	void AnnounceBuffer(void *buffer, size_t size) override;
+	void AnnounceBuffer(Buffer &&buffer) override;
 
 	Buffer::Ptr Grab(int timeout = 0);
 
