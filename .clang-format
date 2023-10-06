@@ -10,6 +10,15 @@ AllowShortFunctionsOnASingleLine: Empty
 SeparateDefinitionBlocks: Always
 AccessModifierOffset: -4
 AlignConsecutiveAssignments: AcrossComments
-AlignConsecutiveDeclarations: AcrossComments
-AlignConsecutiveMacros: AcrossComments
+AllowAllArgumentsOnNextLine: false
+BinPackArguments: false
+BinPackParameters: false
+BreakConstructorInitializers: BeforeComma
+BreakStringLiterals: true
+PackConstructorInitializers: Never
+AlignAfterOpenBracket: BlockIndent
+Cpp11BracedListStyle: true
+AlwaysBreakBeforeMultilineStrings: true
+#AlignConsecutiveDeclarations: AcrossComments
+#AlignConsecutiveMacros: AcrossComments
 ---

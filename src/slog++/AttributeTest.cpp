@@ -1,6 +1,7 @@
 #include "AttributeTest.hpp"
 
 #include "Attribute.hpp"
+#include <chrono>
 #include <gtest/gtest.h>
 #include <variant>
 
@@ -61,9 +62,38 @@ TEST_F(AttributeTest, String) {
 	testString<std::string>("std::string", std::string("World"));
 }
 
+TEST_F(AttributeTest, DurationT) {
+	auto a = Duration("duration", std::chrono::hours(1));
+	EXPECT_EQ(a.key, "duration");
+	EXPECT_NO_THROW(
+	    EXPECT_EQ(std::get<DurationT>(a.value), std::chrono::hours(1))
+	);
+}
+
+TEST_F(AttributeTest, TimeT) {
+	auto epoch            = std::chrono::system_clock::time_point{};
+	auto oneDayAfterEpoch = epoch + std::chrono::hours(24);
+
+	auto a = Time("time", epoch + std::chrono::hours(24));
+	auto b = Time("now", std::chrono::system_clock::now());
+
+	EXPECT_EQ(a.key, "time");
+	EXPECT_NO_THROW({
+		auto time = std::get<TimeT>(a.value);
+		EXPECT_EQ(
+		    time,
+		    std::chrono::time_point_cast<DurationT>(oneDayAfterEpoch)
+		);
+		EXPECT_EQ((time - epoch).count(), 24 * 3600 * 1e9);
+	});
+}
+
 TEST_F(AttributeTest, Group) {
-	auto a = Group("group", String("request", "https://example.com"),
-	               Int("status", 200));
+	auto a = Group(
+	    "group",
+	    String("request", "https://example.com"),
+	    Int("status", 200)
+	);
 	EXPECT_EQ(a.key, "group");
 	EXPECT_NO_THROW({
 		const std::vector<Attribute> &group = *std::get<GroupPtr>(a.value);
@@ -73,6 +103,21 @@ TEST_F(AttributeTest, Group) {
 		EXPECT_EQ(group[1].key, "status");
 		EXPECT_EQ(std::get<int64_t>(group[1].value), 200);
 	});
+}
+
+TEST_F(AttributeTest, ByReference) {
+	int a;
+	float b;
+	std::string c;
+	DurationT d;
+	TimeT e;
+
+	Attribute aa = Int("a", a);
+	Attribute bb = Float("b", b);
+	Attribute cc = String("c", c);
+	Attribute dd = Duration("d", d);
+	Attribute ee = Time("e", e);
+	Group("f", aa, bb, cc, dd, ee);
 }
 
 } // namespace slog
