@@ -1,9 +1,11 @@
-set(HDR_FILES Logger.hpp)
+set(HDR_FILES Logger.hpp #
+              Attribute.hpp)
 
-set(SRC_FILES LoggerImpl.hpp)
+set(SRC_FILES LoggerImpl.hpp #
+              AttributeImpl.hpp)
 
-set(TEST_SRC_FILES LoggerTest.cpp)
-set(TEST_HDR_FILES LoggerTest.hpp)
+set(TEST_SRC_FILES LoggerTest.cpp AttributeTest.cpp)
+set(TEST_HDR_FILES LoggerTest.hpp AttributeTest.hpp)
 
 set(SLOGPP_CPP_CONTENT "")
 foreach(src ${SRC_FILES})
