@@ -4,17 +4,10 @@
 #include <memory>
 #include <type_traits>
 
+#include "Level.hpp"
+
 namespace slog {
 class Sink;
-
-enum Level {
-	Trace    = -8,
-	Debug    = -4,
-	Info     = 0,
-	Warn     = 4,
-	Error    = 8,
-	Critical = 12,
-};
 
 template <size_t N> class Logger {
 public:
@@ -22,8 +15,9 @@ public:
 	Logger(const std::shared_ptr<Sink> &sink);
 
 	template <std::enable_if_t<N != 0, int> = 0>
-	Logger(const std::shared_ptr<Sink> &sink,
-	       std::array<Attribute, N>   &&attributes);
+	Logger(
+	    const std::shared_ptr<Sink> &sink, std::array<Attribute, N> &&attributes
+	);
 
 	template <typename... Fields>
 	Logger<N + sizeof...(Fields)> With(Fields &&...fields) const;
@@ -64,7 +58,7 @@ public:
 	};
 
 private:
-	std::shared_ptr<Sink>    d_sink;
+	std::shared_ptr<Sink> d_sink;
 	std::array<Attribute, N> d_attributes;
 };
 

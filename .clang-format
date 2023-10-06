@@ -19,6 +19,6 @@ PackConstructorInitializers: Never
 AlignAfterOpenBracket: BlockIndent
 Cpp11BracedListStyle: true
 AlwaysBreakBeforeMultilineStrings: true
-#AlignConsecutiveDeclarations: AcrossComments
-#AlignConsecutiveMacros: AcrossComments
+AlignConsecutiveDeclarations: AcrossComments
+AlignConsecutiveMacros: AcrossComments
 ---
