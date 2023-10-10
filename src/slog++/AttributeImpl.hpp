@@ -41,7 +41,7 @@ Duration(const Str &key, const std::chrono::duration<Rep, Period> &value) {
 
 template <typename Str, class Duration>
 inline Attribute Time(
-    const Str &key,
+    const Str                                                          &key,
     const std::chrono::time_point<std::chrono::system_clock, Duration> &value
 ) {
 	return Attribute{
@@ -59,6 +59,21 @@ inline Attribute Group(const Str &key, Attributes &&...attributes) {
 	);
 
 	return Attribute{key, group};
+}
+
+inline Attribute Error(const std::exception &e) {
+	return Attribute{"error", e.what()};
+}
+
+template <
+    typename Str,
+    std::enable_if_t<std::is_convertible_v<Str &&, std::string>, bool> = true>
+inline Attribute Error(Str &&what) {
+	return Attribute{"error", std::string(what)};
+}
+
+inline bool Attribute::operator==(const Attribute &other) const {
+	return key == other.key && value == other.value;
 }
 
 } // namespace slog

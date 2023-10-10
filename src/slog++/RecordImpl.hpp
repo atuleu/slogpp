@@ -2,26 +2,48 @@
 
 #include "Record.hpp"
 #include <algorithm>
+#include <chrono>
 #include <iterator>
 
 namespace slog {
 
-inline Record::Record(Level lvl, std::string &&msg, size_t capacity)
-    : timestamp(std::chrono::time_point_cast<DurationT>(
-          std::chrono::system_clock::now()
-      ))
+template <typename Str, size_t N, typename... Attributes>
+inline Record::Record(
+    Level                           lvl,
+    Str                           &&msg,
+    const std::array<Attribute, N> &copiedAttributes,
+    Attributes &&...attributes
+)
+    : timestamp(std::chrono::system_clock::now())
     , level(lvl)
-    , message(msg) {
-	attributes.reserve(capacity);
+    , message(std::forward<Str>(msg)) {
+	this->attributes.reserve(N + sizeof...(attributes));
+	std::copy(
+	    copiedAttributes.begin(),
+	    copiedAttributes.end(),
+	    std::back_inserter(this->attributes)
+	);
+	this->attributes.push_back(std::forward<Attributes>(attributes)...);
 }
 
-template <typename Iter>
-inline void Record::PushAttributes(const Iter &begin, const Iter &end) {
-	std::copy(begin, end, std::back_inserter(attributes));
+template <typename Str, typename... Attributes>
+inline Record::Record(Level lvl, Str &&msg, Attributes &&...attributes)
+    : timestamp(std::chrono::system_clock::now())
+    , level(lvl)
+    , message(std::forward<Str>(msg)) {
+	this->attributes.reserve(sizeof...(attributes));
+	(this->attributes.push_back(std::forward<Attributes>(attributes)), ...);
 }
 
-inline void Record::PushAttribute(Attribute &&attr) {
-	attributes.push_back(std::move(attr));
+template <typename Timestamp, typename Str, typename... Attributes>
+inline Record::Record(
+    Timestamp &&time, Level lvl, Str &&msg, Attributes &&...attributes
+)
+    : timestamp(std::forward<Timestamp>(time))
+    , level(lvl)
+    , message(std::forward<Str>(msg)) {
+	this->attributes.reserve(sizeof...(attributes));
+	(this->attributes.push_back(std::forward<Attributes>(attributes)), ...);
 }
 
 } // namespace slog

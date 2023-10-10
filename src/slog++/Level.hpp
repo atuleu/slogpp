@@ -2,7 +2,7 @@
 
 namespace slog {
 
-enum Level {
+enum class Level {
 	Trace    = -8,
 	Debug    = -4,
 	Info     = 0,

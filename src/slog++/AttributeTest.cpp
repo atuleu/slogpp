@@ -105,6 +105,14 @@ TEST_F(AttributeTest, Group) {
 	});
 }
 
+TEST_F(AttributeTest, Error) {
+	EXPECT_EQ(Error("oops"), (Attribute{"error", "oops"}));
+	EXPECT_EQ(
+	    Error(std::runtime_error("something went wrong")),
+	    (Attribute{"error", "something went wrong"})
+	);
+}
+
 TEST_F(AttributeTest, ByReference) {
 	int a;
 	float b;

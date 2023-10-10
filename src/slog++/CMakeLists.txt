@@ -3,19 +3,26 @@ set(HDR_FILES
     Attribute.hpp #
     Level.hpp #
     Record.hpp #
+    Formatters.hpp #
 )
 
 set(SRC_FILES
     LoggerImpl.hpp #
     AttributeImpl.hpp #
     RecordImpl.hpp #
+    FormattersImpl.hpp #
 )
 
-set(TEST_SRC_FILES LoggerTest.cpp #
-                   AttributeTest.cpp #
+set(TEST_SRC_FILES
+    LoggerTest.cpp #
+    AttributeTest.cpp #
+    FormattersTest.cpp #
 )
-set(TEST_HDR_FILES LoggerTest.hpp #
-                   AttributeTest.hpp #
+
+set(TEST_HDR_FILES
+    LoggerTest.hpp #
+    AttributeTest.hpp #
+    MockSink.hpp #
 )
 
 set(SLOGPP_CPP_CONTENT "")
@@ -28,7 +35,7 @@ configure_file(slog++.cpp.in slog.cpp @ONLY)
 add_executable(slog++-tests ${HDR_FILES} ${SRC_FILES} ${TEST_HDR_FILES}
                             ${TEST_SRC_FILES})
 
-target_link_libraries(slog++-tests GTest::gtest_main)
+target_link_libraries(slog++-tests GTest::gtest_main GTest::gmock_main)
 
 gtest_discover_tests(slog++-tests)
 add_dependencies(check slog++-tests)

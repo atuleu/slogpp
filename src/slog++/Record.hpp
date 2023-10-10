@@ -11,11 +11,19 @@ struct Record {
 	std::string            message;
 	std::vector<Attribute> attributes;
 
-	Record(Level lvl, std::string &&message, size_t capacity = 0);
+	template <typename Str, size_t N, typename... Attributes>
+	Record(
+	    Level                           lvl,
+	    Str	                       &&msg,
+	    const std::array<Attribute, N> &copiedAttributes,
+	    Attributes &&...attributes
+	);
 
-	template <typename Iter>
-	void PushAttributes(const Iter &begin, const Iter &end);
-	void PushAttribute(Attribute &&attr);
+	template <typename Str, typename... Attributes>
+	Record(Level lvl, Str &&msg, Attributes &&...attributes);
+
+	template <typename Timestamp, typename Str, typename... Attributes>
+	Record(Timestamp &&time, Level lvl, Str &&msg, Attributes &&...attributes);
 };
 
 } // namespace slog
