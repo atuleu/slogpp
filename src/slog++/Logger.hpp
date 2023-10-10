@@ -11,52 +11,64 @@ class Sink;
 
 template <size_t N> class Logger {
 public:
-	template <size_t M = N, std::enable_if_t<M == 0, bool> = true>
-	Logger(const std::shared_ptr<Sink> &sink);
+	template <size_t M> friend class Logger;
 
-	template <size_t M = N, std::enable_if_t<M >= 1, bool> = true>
-	Logger(
-	    const std::shared_ptr<Sink> &sink, std::array<Attribute, N> &&attributes
-	);
+	Logger(std::shared_ptr<Sink> sink) noexcept;
 
-	template <typename... Fields>
-	Logger<N + sizeof...(Fields)> With(Fields &&...fields) const;
+	template <typename... Attributes>
+	Logger<N + sizeof...(Attributes)> With(Attributes &&...attributes
+	) const noexcept;
 
-	Logger<N + 1> WithError(const char *what) const;
+	template <
+	    typename Str,
+	    std::enable_if_t<std::is_convertible_v<Str, std::string>>>
+	Logger<N + 1> WithError(Str &&what) const noexcept;
 
-	Logger<N + 1> WithError(const std::exception &e) const;
+	Logger<N + 1> WithError(const std::exception &e) const noexcept;
 
-	template <typename Str, typename... Fields>
-	void Log(Level level, const Str &msg, Fields &&...fields) const;
+	template <typename Str, typename... Attributes>
+	void Log(Level level, Str &&msg, Attributes &&...attributes) const;
 
-	template <typename Str, typename... Fields>
-	inline void Trace(const Str &msg, Fields &&...fields) const {
-		Log(Level::Trace, msg, std::forward<Fields>(fields)...);
+	template <typename Str, typename... Attributes>
+	inline void Trace(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Trace,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
 	};
 
-	template <typename Str, typename... Fields>
-	inline void Debug(const Str &msg, Fields &&...fields) const {
-		Log(Level::Debug, msg, std::forward<Fields>(fields)...);
+	template <typename Str, typename... Attributes>
+	inline void Debug(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Debug,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
 	};
 
-	template <typename Str, typename... Fields>
-	inline void Info(const Str &msg, Fields &&...fields) const {
-		Log(Level::Info, msg, std::forward<Fields>(fields)...);
+	template <typename Str, typename... Attributes>
+	inline void Info(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Info,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
 	};
 
-	template <typename Str, typename... Fields>
-	inline void Warn(const Str &msg, Fields &&...fields) const {
-		Log(Level::Warn, msg, std::forward<Fields>(fields)...);
+	template <typename Str, typename... Attributes>
+	inline void Warn(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Warn,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
 	};
 
-	template <typename Str, typename... Fields>
-	inline void Error(const Str &msg, Fields &&...fields) const {
-		Log(Level::Error, msg, std::forward<Fields>(fields)...);
+	template <typename Str, typename... Attributes>
+	inline void Error(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Error,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
 	};
 
-	template <typename Str, typename... Fields>
-	inline void Critical(const Str &msg, Fields &&...fields) const {
-		Log(Level::Critical, msg, std::forward<Fields>(fields)...);
+	template <typename Str, typename... Attributes>
+	inline void Critical(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Critical,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
 	};
 
 private:

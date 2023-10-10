@@ -2,77 +2,84 @@
 
 #include "Attribute.hpp"
 #include <initializer_list>
+#include <type_traits>
 
 namespace slog {
 
-template <typename Str> inline Attribute Bool(const Str &key, bool value) {
-	return Attribute{key, value};
+template <typename Str> inline Attribute Bool(Str &&key, bool value) {
+	return Attribute{std::forward<Str>(key), value};
 }
 
 template <
     typename Str,
     typename Integer,
-    std::enable_if_t<std::is_integral_v<Integer>, int>>
-inline Attribute Int(const Str &key, Integer value) {
-	return Attribute{key, int64_t(value)};
+    std::enable_if_t<std::is_integral_v<std::decay_t<Integer>>> *>
+inline Attribute Int(Str &&key, Integer value) noexcept {
+	return Attribute{std::forward<Str>(key), int64_t(value)};
 }
 
 template <
     typename Str,
     typename Floating,
-    std::enable_if_t<std::is_floating_point_v<Floating>, int>>
-inline Attribute Float(const Str &key, Floating value) {
-	return Attribute{key, double(value)};
+    std::enable_if_t<std::is_floating_point_v<Floating>> *>
+inline Attribute Float(Str &&key, Floating value) noexcept {
+	return Attribute{std::forward<Str>(key), double(value)};
 }
 
 template <
     typename Str,
     typename T,
-    std::enable_if_t<std::is_convertible_v<T &&, std::string>, int>>
-inline Attribute String(const Str &key, T &&value) {
-	return Attribute{key, std::string(value)};
-}
-
-template <typename Str, class Rep, class Period>
-inline Attribute
-Duration(const Str &key, const std::chrono::duration<Rep, Period> &value) {
-	return Attribute{key, std::chrono::duration_cast<DurationT>(value)};
-}
-
-template <typename Str, class Duration>
-inline Attribute Time(
-    const Str                                                          &key,
-    const std::chrono::time_point<std::chrono::system_clock, Duration> &value
-) {
-	return Attribute{
-	    key,
-	    std::chrono::time_point_cast<DurationT>(value),
-	};
-}
-
-template <typename Str, typename... Attributes>
-inline Attribute Group(const Str &key, Attributes &&...attributes) {
-	auto group = std::make_shared<std::vector<Attribute>>(
-	    std::initializer_list<Attribute>{
-	        std::forward<Attributes>(attributes)...,
-	    }
-	);
-
-	return Attribute{key, group};
-}
-
-inline Attribute Error(const std::exception &e) {
-	return Attribute{"error", e.what()};
+    std::enable_if_t<std::is_convertible_v<T, std::string>> *>
+inline Attribute String(Str &&key, T &&value) noexcept {
+	return Attribute{std::forward<Str>(key), std::forward<T>(value)};
 }
 
 template <
     typename Str,
-    std::enable_if_t<std::is_convertible_v<Str &&, std::string>, bool> = true>
-inline Attribute Error(Str &&what) {
-	return Attribute{"error", std::string(what)};
+    typename DurationType,
+    std::enable_if_t<details::is_duration_castable<DurationType>::value> *>
+inline Attribute Duration(Str &&key, DurationType &&value) noexcept {
+	using namespace std::chrono;
+	return Attribute{
+	    std::forward<Str>(key),
+	    duration_cast<DurationT>(std::forward<DurationType>(value)),
+	};
 }
 
-inline bool Attribute::operator==(const Attribute &other) const {
+template <
+    typename Str,
+    typename Timepoint,
+    std::enable_if_t<details::is_time_castable<Timepoint>::value> *>
+inline Attribute Time(Str &&key, Timepoint &&timepoint) noexcept {
+	using namespace std::chrono;
+	return Attribute{
+	    std::forward<Str>(key),
+	    time_point_cast<DurationT>(std::forward<Timepoint>(timepoint)),
+	};
+}
+
+template <typename Str, typename... Attributes>
+inline Attribute Group(Str &&key, Attributes &&...attributes) noexcept {
+	auto group = std::make_shared<std::vector<Attribute>>();
+
+	group->reserve(sizeof...(attributes));
+	((group->emplace_back(std::forward<Attributes>(attributes))), ...);
+
+	return Attribute{key, group};
+}
+
+template <
+    typename Str,
+    std::enable_if_t<std::is_convertible_v<Str, std::string>, bool>>
+inline Attribute Error(Str &&what) noexcept {
+	return Attribute{"error", std::forward<Str>(what)};
+}
+
+inline Attribute Error(const std::exception &e) noexcept {
+	return Error(e.what());
+}
+
+inline bool Attribute::operator==(const Attribute &other) const noexcept {
 	return key == other.key && value == other.value;
 }
 

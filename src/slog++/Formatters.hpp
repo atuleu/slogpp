@@ -5,14 +5,14 @@
 
 namespace slog {
 
-class Record;
+class RecordBase;
 
-typedef std::function<void(const Record &record, std::string &buffer)>
+typedef std::function<void(const RecordBase &record, std::string &buffer)>
     Formatter;
 
-void RecordToJSON(const Record &record, std::string &buffer);
+void RecordToJSON(const RecordBase &record, std::string &buffer);
 
-void RecordToText(const Record &record, std::string &buffer);
+void RecordToText(const RecordBase &record, std::string &buffer);
 
 } // namespace slog
 

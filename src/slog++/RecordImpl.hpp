@@ -7,43 +7,86 @@
 
 namespace slog {
 
-template <typename Str, size_t N, typename... Attributes>
-inline Record::Record(
-    Level                           lvl,
-    Str                           &&msg,
-    const std::array<Attribute, N> &copiedAttributes,
-    Attributes &&...attributes
-)
+template <typename Str>
+inline RecordBase::RecordBase(Level level, Str &&message) noexcept
     : timestamp(std::chrono::system_clock::now())
-    , level(lvl)
-    , message(std::forward<Str>(msg)) {
-	this->attributes.reserve(N + sizeof...(attributes));
+    , level(level)
+    , message(std::forward<Str>(message)) {}
+
+template <typename Timestamp, typename Str>
+inline RecordBase::RecordBase(
+    Timestamp &&time, Level level, Str &&message
+) noexcept
+    : timestamp(std::forward<Timestamp>(time))
+    , level(level)
+    , message(std::forward<Str>(message)) {}
+
+template <size_t N>
+template <typename Str, size_t M, typename... Attributes>
+inline Record<N>::Record(
+    Level                           level,
+    Str                           &&message,
+    const std::array<Attribute, M> &copiedAttributes,
+    Attributes &&...attributes
+) noexcept
+    : RecordBase(level, std::forward<Str>(message)) {
 	std::copy(
 	    copiedAttributes.begin(),
 	    copiedAttributes.end(),
-	    std::back_inserter(this->attributes)
+	    this->attributes.begin()
 	);
-	this->attributes.push_back(std::forward<Attributes>(attributes)...);
+	std::size_t index = M - 1;
+	((this->attributes[++index] = std::forward<Attributes>(attributes)), ...);
 }
 
+template <size_t N>
 template <typename Str, typename... Attributes>
-inline Record::Record(Level lvl, Str &&msg, Attributes &&...attributes)
-    : timestamp(std::chrono::system_clock::now())
-    , level(lvl)
-    , message(std::forward<Str>(msg)) {
-	this->attributes.reserve(sizeof...(attributes));
-	(this->attributes.push_back(std::forward<Attributes>(attributes)), ...);
+inline Record<N>::Record(
+    Level level, Str &&message, Attributes &&...attributes
+) noexcept
+    : RecordBase(level, std::forward<Str>(message)) {
+	std::size_t index = -1;
+	((this->attributes[++index] = std::forward<Attributes>(attributes)), ...);
 }
 
+template <size_t N>
 template <typename Timestamp, typename Str, typename... Attributes>
-inline Record::Record(
-    Timestamp &&time, Level lvl, Str &&msg, Attributes &&...attributes
-)
-    : timestamp(std::forward<Timestamp>(time))
-    , level(lvl)
-    , message(std::forward<Str>(msg)) {
-	this->attributes.reserve(sizeof...(attributes));
-	(this->attributes.push_back(std::forward<Attributes>(attributes)), ...);
+inline Record<N>::Record(
+    Timestamp &&timestamp,
+    Level       level,
+    Str       &&message,
+    Attributes &&...attributes
+) noexcept
+    : RecordBase(
+          std::forward<Timestamp>(timestamp), level, std::forward<Str>(message)
+      ) {
+	std::size_t index = -1;
+	((this->attributes[++index] = std::forward<Attributes>(attributes)), ...);
+}
+
+template <size_t N>
+inline typename Record<N>::const_iterator Record<N>::begin() const noexcept {
+	return attributes.cbegin();
+}
+
+template <size_t N>
+inline typename Record<N>::const_iterator Record<N>::end() const noexcept {
+	return attributes.cend();
+}
+
+template <size_t N>
+inline typename Record<N>::size_type Record<N>::size() const noexcept {
+	return N;
+}
+
+template <size_t N> inline bool Record<N>::empty() const noexcept {
+	return N == 0;
+}
+
+template <size_t N>
+inline typename Record<N>::const_reference Record<N>::operator[](size_type n
+) const noexcept {
+	return attributes[n];
 }
 
 } // namespace slog

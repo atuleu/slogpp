@@ -18,9 +18,43 @@ const std::string &levelName(Level level) {
 	return names[idx];
 }
 
-inline void attributeToJSON(const Attribute &attribute, std::string &buffer) {}
+// helper constant for the visitor #3
+template <class> inline constexpr bool always_false_v = false;
 
-inline void RecordToJSON(const Record &record, std::string &buffer) {
+inline void attributeToJSON(const Attribute &attribute, std::string &buffer) {
+	buffer += "\"" + attribute.key + "\":";
+	std::visit(
+	    [&buffer](auto &&arg) {
+		    using T = std::decay_t<decltype(arg)>;
+		    if constexpr (std::is_same_v<T, int64_t>) {
+			    buffer += std::to_string(arg);
+		    } else if constexpr (std::is_same_v<T, double>) {
+			    buffer += std::to_string(arg);
+		    } else if constexpr (std::is_same_v<T, std::string>) {
+			    buffer += "\"" + arg + "\"";
+		    } else if constexpr (std::is_same_v<T, DurationT>) {
+			    buffer += std::to_string(arg.count());
+		    } else if constexpr (std::is_same_v<T, TimeT>) {
+			    buffer += "\"NOOP\"";
+		    } else if constexpr (std::is_same_v<T, GroupPtr>) {
+			    auto prefix = '{';
+			    for (const auto &attr : *arg) {
+				    buffer += prefix;
+				    prefix = ',';
+				    attributeToJSON(attr, buffer);
+			    }
+			    buffer += "}";
+		    } else if constexpr (std::is_same_v<T, bool>) {
+			    buffer += arg ? "true" : "false";
+		    } else {
+			    static_assert(always_false_v<T>, "non-exhaustive visitor");
+		    }
+	    },
+	    attribute.value
+	);
+}
+
+inline void RecordToJSON(const RecordBase &record, std::string &buffer) {
 	uint64_t nanos   = record.timestamp.time_since_epoch().count();
 	uint64_t seconds = nanos / 1000000000UL;
 	nanos -= seconds * 1000000000UL;
@@ -32,14 +66,15 @@ inline void RecordToJSON(const Record &record, std::string &buffer) {
 
 	buffer += ",\"message\":\"" + record.message + "\"";
 
-	for (const Attribute &attribute : record.attributes) {
+	for (const Attribute &attribute : record) {
+		buffer += ",";
 		attributeToJSON(attribute, buffer);
 	}
 
 	buffer += "}";
 }
 
-inline void RecordToText(const Record &record, std::string &buffer) {
+inline void RecordToText(const RecordBase &record, std::string &buffer) {
 	throw std::runtime_error("not yet implemented");
 }
 

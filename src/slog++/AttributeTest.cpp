@@ -9,7 +9,7 @@ namespace slog {
 
 template <typename T> void testInteger(const std::string &key, T &&value) {
 	SCOPED_TRACE(key);
-	auto a = Int(key, value);
+	auto a = Int(key, std::forward<T>(value));
 
 	EXPECT_EQ(a.key, key);
 	EXPECT_NO_THROW({ EXPECT_EQ(std::get<int64_t>(a.value), value); });
@@ -114,11 +114,11 @@ TEST_F(AttributeTest, Error) {
 }
 
 TEST_F(AttributeTest, ByReference) {
-	int a;
-	float b;
+	int         a;
+	float       b;
 	std::string c;
-	DurationT d;
-	TimeT e;
+	DurationT   d;
+	TimeT       e;
 
 	Attribute aa = Int("a", a);
 	Attribute bb = Float("b", b);

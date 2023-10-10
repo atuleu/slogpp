@@ -16,7 +16,8 @@ void LoggerTest::TearDown() {
 
 using ::testing::_;
 using ::testing::AllOf;
-using ::testing::Contains;
+using ::testing::BeginEndDistanceIs;
+using ::testing::ElementsAreArray;
 using ::testing::Eq;
 using ::testing::Field;
 using ::testing::Gt;
@@ -26,15 +27,11 @@ using ::testing::Return;
 using ::testing::StrEq;
 
 inline constexpr auto HasLevel = [](const auto &level) {
-	return Field("level", &Record::level, Eq(level));
+	return Field("level", &RecordBase::level, Eq(level));
 };
 
 inline constexpr auto HasMessage = [](const auto &message) {
-	return Field("message", &Record::message, StrEq(message));
-};
-
-inline constexpr auto HasAttribute = [](const auto &attribute) {
-	return Field("attributes", &Record::attributes, Contains(attribute));
+	return Field("message", &RecordBase::message, StrEq(message));
 };
 
 TEST_F(LoggerTest, LogHelperFunction) {
@@ -72,7 +69,11 @@ TEST_F(LoggerTest, LogHelperFunction) {
 		EXPECT_CALL(*sink, Enabled(data.level)).WillOnce(Return(true));
 		EXPECT_CALL(
 		    *sink,
-		    Log(AllOf(HasLevel(data.level), HasMessage(data.message)))
+		    Log(AllOf(
+		        HasLevel(data.level),
+		        HasMessage(data.message),
+		        BeginEndDistanceIs(0)
+		    ))
 		);
 
 		data.func(data.message);
@@ -101,10 +102,12 @@ TEST_F(LoggerTest, AttributeLogging) {
 		    Log(AllOf(
 		        HasLevel(Level::Info),
 		        HasMessage("with attribute"),
-		        HasAttribute(Int("status", 200))
+		        ElementsAreArray({Int("status", 200)})
 		    ))
+
 		);
 	}
+
 	logger->Info("with attribute", Int("status", 200));
 }
 
@@ -120,8 +123,10 @@ TEST_F(LoggerTest, AttributePropagation) {
 		    Log(AllOf(
 		        HasLevel(Level::Warn),
 		        HasMessage("unknown resource"),
-		        HasAttribute(Int("status", 404)),
-		        HasAttribute(String("request", "https://example.com"))
+		        ElementsAreArray({
+		            String("request", "https://example.com"),
+		            Int("status", 404),
+		        })
 		    ))
 		);
 	}

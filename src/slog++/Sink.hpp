@@ -11,7 +11,7 @@ public:
 
 	virtual bool Enabled(Level lvl) const = 0;
 
-	virtual void Log(const Record &record) = 0;
+	virtual void Log(const RecordBase &record) = 0;
 };
 
 }; // namespace slog
