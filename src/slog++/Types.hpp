@@ -36,7 +36,6 @@ public:
 	virtual const_iterator  begin() const noexcept                 = 0;
 	virtual const_iterator  end() const noexcept                   = 0;
 	virtual size_type       size() const noexcept                  = 0;
-	virtual bool            empty() const noexcept                 = 0;
 	virtual const_reference operator[](size_type n) const noexcept = 0;
 };
 

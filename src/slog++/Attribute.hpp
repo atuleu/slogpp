@@ -43,35 +43,31 @@ struct Attribute {
 	bool operator==(const Attribute &other) const noexcept;
 };
 
-template <size_t N>
-class AttributeArray : public AttributeContainer,
-                       public std::array<Attribute, N> {
-	using Array = std::array<Attribute, N>;
-
+template <size_t N, std::enable_if_t<N >= 1> * = nullptr>
+class AttributeArray : public AttributeContainer {
 public:
 	template <typename... Attributes>
 	AttributeArray(Attributes &&...attributes)
-	    : std::array<Attribute, N>{std::forward<Attributes>(attributes)...} {};
+	    : d_data{std::forward<Attributes>(attributes)...} {};
 
-	inline const_iterator begin() const noexcept override {
-		return static_cast<const Array *>(this)->cbegin();
+	const_iterator begin() const noexcept override {
+		return d_data;
 	}
 
-	inline const_iterator end() const noexcept override {
-		return static_cast<const Array *>(this)->cend();
+	const_iterator end() const noexcept override {
+		return d_data + N;
 	}
 
-	inline size_type size() const noexcept override {
-		return static_cast<const Array *>(this)->size();
+	size_type size() const noexcept override {
+		return N;
 	}
 
-	inline bool empty() const noexcept override {
-		return static_cast<const Array *>(this)->empty();
+	const_reference operator[](size_type n) const noexcept override {
+		return d_data[n];
 	}
 
-	inline const_reference operator[](size_type n) const noexcept override {
-		return (*static_cast<const Array *>(this))[n];
-	}
+private:
+	Attribute d_data[N];
 };
 
 template <typename Str> Attribute Bool(Str &&key, bool value);
