@@ -1,18 +1,17 @@
 #pragma once
 
 #include <functional>
-#include <string>
+#include <iostream>
 
 namespace slog {
 
 class RecordBase;
 
-typedef std::function<void(const RecordBase &record, std::string &buffer)>
-    Formatter;
+using Formatter = void (*)(const RecordBase &record, std::string &);
 
-void RecordToJSON(const RecordBase &record, std::string &buffer);
+void RecordToJSON(const RecordBase &record, std::string &);
 
-void RecordToText(const RecordBase &record, std::string &buffer);
+void RecordToText(const RecordBase &record, std::string &);
 
 } // namespace slog
 

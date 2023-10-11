@@ -1,9 +1,37 @@
 #pragma once
 
+#include "Attribute.hpp"
 #include "Formatters.hpp"
 #include "Record.hpp"
 
-namespace slog {
+namespace slog{
+
+namespace details {
+
+inline std::string ToString(bool value) {
+	return value ? "true" : "false";
+}
+
+inline std::string ToString(int64_t value) {
+	return std::to_string(value);
+}
+
+inline std::string ToString(double value) {
+	return std::to_string(value);
+}
+
+inline std::string ToString(const std::string &value) {
+	// TODO: quote escaping
+	return value;
+}
+
+inline std::string ToString(const DurationT &value) {
+	return "NOOP";
+}
+
+inline std::string ToString(const TimeT &value) {
+	return "NOOP";
+}
 
 const std::string &levelName(Level level) {
 	static std::array<std::string, 22> names = {
@@ -25,18 +53,8 @@ inline void attributeToJSON(const Attribute &attribute, std::string &buffer) {
 	buffer += "\"" + attribute.key + "\":";
 	std::visit(
 	    [&buffer](auto &&arg) {
-		    using T = std::decay_t<decltype(arg)>;
-		    if constexpr (std::is_same_v<T, int64_t>) {
-			    buffer += std::to_string(arg);
-		    } else if constexpr (std::is_same_v<T, double>) {
-			    buffer += std::to_string(arg);
-		    } else if constexpr (std::is_same_v<T, std::string>) {
-			    buffer += "\"" + arg + "\"";
-		    } else if constexpr (std::is_same_v<T, DurationT>) {
-			    buffer += std::to_string(arg.count());
-		    } else if constexpr (std::is_same_v<T, TimeT>) {
-			    buffer += "\"NOOP\"";
-		    } else if constexpr (std::is_same_v<T, GroupPtr>) {
+		    using T = std::decay_t<decltype(arg)>;       // cast away references
+		    if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
 			    auto prefix = '{';
 			    for (const auto &attr : *arg) {
 				    buffer += prefix;
@@ -44,31 +62,26 @@ inline void attributeToJSON(const Attribute &attribute, std::string &buffer) {
 				    attributeToJSON(attr, buffer);
 			    }
 			    buffer += "}";
-		    } else if constexpr (std::is_same_v<T, bool>) {
-			    buffer += arg ? "true" : "false";
-		    } else {
-			    static_assert(always_false_v<T>, "non-exhaustive visitor");
+		    } else { // formatter
+			    buffer += details::ToString(std::forward<decltype(arg)>(arg));
 		    }
 	    },
 	    attribute.value
 	);
 }
 
+} // namespace details
+
 inline void RecordToJSON(const RecordBase &record, std::string &buffer) {
-	uint64_t nanos   = record.timestamp.time_since_epoch().count();
-	uint64_t seconds = nanos / 1000000000UL;
-	nanos -= seconds * 1000000000UL;
+	buffer += "{\"time\":\"" + details::ToString(record.timestamp) + "\"";
 
-	buffer +=
-	    "{\"time\":" + std::to_string(seconds) + "." + std::to_string(nanos);
-
-	buffer += ",\"level\":\"" + levelName(record.level) + "\"";
+	buffer += ",\"level\":\"" + details::levelName(record.level) + "\"";
 
 	buffer += ",\"message\":\"" + record.message + "\"";
 
 	for (const Attribute &attribute : record) {
 		buffer += ",";
-		attributeToJSON(attribute, buffer);
+		details::attributeToJSON(attribute, buffer);
 	}
 
 	buffer += "}";
@@ -78,4 +91,4 @@ inline void RecordToText(const RecordBase &record, std::string &buffer) {
 	throw std::runtime_error("not yet implemented");
 }
 
-}; // namespace slog
+}; // namespace
