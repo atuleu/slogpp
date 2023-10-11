@@ -280,7 +280,7 @@ const std::string &levelName(Level level) {
 // helper constant for the visitor #3
 template <class> inline constexpr bool always_false_v = false;
 
-inline void attributeToJSON(const Attribute &attribute, std::string &buffer) {
+inline void attributeToJSON(const Attribute &attribute, Buffer &buffer) {
 	buffer += "\"" + attribute.key + "\":";
 	std::visit(
 	    [&buffer](auto &&arg) {
@@ -304,6 +304,35 @@ inline void attributeToJSON(const Attribute &attribute, std::string &buffer) {
 	    attribute.value
 	);
 }
+
+inline void attributeToText(
+    const Attribute &attribute, const std::string &groupPrefix, Buffer &buffer
+) {
+	auto name = groupPrefix + attribute.key;
+	std::visit(
+	    [&buffer, &name](auto &&arg) {
+		    using T = std::decay_t<decltype(arg)>;       // cast away references
+		    if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
+			    auto prefix = name + ".";
+			    auto sep    = "";
+			    for (const auto &attr : *arg) {
+				    buffer += sep;
+				    sep = " ";
+				    attributeToText(attr, prefix, buffer);
+			    }
+		    } else { // formatter
+			    buffer += name + "=";
+			    details::FormatTo(
+			        std::forward<decltype(arg)>(arg),
+			        false,
+			        buffer
+			    );
+		    }
+	    },
+	    attribute.value
+	);
+}
+
 } // namespace details
 
 inline void RecordToJSON(const RecordBase &record, std::string &buffer) {
@@ -324,7 +353,16 @@ inline void RecordToJSON(const RecordBase &record, std::string &buffer) {
 }
 
 inline void RecordToText(const RecordBase &record, std::string &buffer) {
-	throw std::runtime_error("not yet implemented");
+	details::FormatTo(record.timestamp, false, buffer);
+
+	buffer += " " + details::levelName(record.level) + " ";
+
+	details::FormatTo(record.message, false, buffer);
+
+	for (const Attribute &attribute : record) {
+		buffer += " ";
+		details::attributeToText(attribute, "", buffer);
+	}
 }
 
 }; // namespace slog

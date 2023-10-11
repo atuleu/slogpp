@@ -125,4 +125,62 @@ TEST(Formatters, JSON) {
 	}
 }
 
+TEST(Formatters, Text) {
+	struct TestData {
+		std::string                 Name;
+		std::string                 Expected;
+		std::shared_ptr<RecordBase> Input;
+	};
+
+	TimeT ts{};
+	ts += std::chrono::hours(24);
+
+	std::vector<TestData> testdata = {
+	    {
+	        "Simple",
+	        "1970-01-02T00:00:00.000Z WARN simple",
+	        std::make_unique<Record<0>>(ts, Level::Warn, "simple"),
+	    },
+	    {
+	        "WithFields",
+	        "1970-01-02T00:00:00.000Z ERROR \"simple attribute logging\" "
+	        "anInt=1 aDouble=1.5 aString=\"hello "
+	        "world\" aDuration=32µs aTimestamp=1970-01-01T00:00:00.000Z",
+	        std::make_shared<Record<5>>(
+	            ts,
+	            Level::Error,
+	            "simple attribute logging",
+	            Int("anInt", 1),
+	            Float("aDouble", 1.5),
+	            String("aString", "hello world"),
+	            Duration("aDuration", std::chrono::microseconds(32)),
+	            Time("aTimestamp", TimeT{})
+	        ),
+	    },
+	    {
+	        "WithGroup",
+	        "1970-01-02T00:00:00.000Z DEBUG \"grouped attribute logging\" "
+	        "aGroup.request=https://example.com/ aGroup.status=200",
+	        std::make_shared<Record<1>>(
+	            ts,
+	            Level::Debug,
+	            "grouped attribute logging",
+	            Group(
+	                "aGroup",
+	                String("request", "https://example.com/"),
+	                Int("status", 200)
+	            )
+	        ),
+	    },
+
+	};
+
+	for (const auto &data : testdata) {
+		SCOPED_TRACE(data.Name);
+		std::string buffer;
+		EXPECT_NO_THROW(RecordToText(*data.Input, buffer));
+		EXPECT_EQ(buffer, data.Expected);
+	}
+}
+
 }; // namespace slog
