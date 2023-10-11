@@ -43,12 +43,20 @@ struct Attribute {
 	bool operator==(const Attribute &other) const noexcept;
 };
 
-template <size_t N, std::enable_if_t<N >= 1> * = nullptr>
-class AttributeArray : public AttributeContainer {
+template <typename T, size_t N, std::enable_if_t<N >= 1> * = nullptr>
+class Array : virtual public Container<Attribute> {
 public:
-	template <typename... Attributes>
-	AttributeArray(Attributes &&...attributes)
-	    : d_data{std::forward<Attributes>(attributes)...} {};
+	template <typename... U>
+	Array(U &&...values)
+	    : d_data{std::forward<U>(values)...} {};
+
+	const_iterator cbegin() const noexcept override {
+		return d_data;
+	}
+
+	const_iterator cend() const noexcept override {
+		return d_data + N;
+	}
 
 	const_iterator begin() const noexcept override {
 		return d_data;
@@ -58,8 +66,20 @@ public:
 		return d_data + N;
 	}
 
+	iterator begin() noexcept override {
+		return d_data;
+	}
+
+	iterator end() noexcept override {
+		return d_data + N;
+	}
+
 	size_type size() const noexcept override {
 		return N;
+	}
+
+	reference operator[](size_type n) noexcept override {
+		return d_data[n];
 	}
 
 	const_reference operator[](size_type n) const noexcept override {
@@ -67,7 +87,7 @@ public:
 	}
 
 private:
-	Attribute d_data[N];
+	T d_data[N];
 };
 
 template <typename Str> Attribute Bool(Str &&key, bool value);

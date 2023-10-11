@@ -21,6 +21,23 @@ inline RecordBase::RecordBase(
     , level(level)
     , message(std::forward<Str>(message)) {}
 
+namespace details {
+template <typename T, size_t N, typename... U>
+Array<T, N + sizeof...(U)>
+append(const std::array<T, N> &array, U &&...values) {
+
+	Array<T, N + sizeof...(U)> result;
+
+	std::copy(array.begin(), array.end(), result.begin());
+
+	std::size_t index = N - 1;
+	((result[++index] = std::forward<U>(values)), ...);
+
+	return result;
+}
+
+} // namespace details
+
 template <size_t N>
 template <typename Str, size_t M, typename... Attributes>
 inline Record<N>::Record(
@@ -29,25 +46,20 @@ inline Record<N>::Record(
     const std::array<Attribute, M> &copiedAttributes,
     Attributes &&...attributes
 ) noexcept
-    : RecordBase(level, std::forward<Str>(message)) {
-	std::copy(
-	    copiedAttributes.begin(),
-	    copiedAttributes.end(),
-	    this->attributes.begin()
-	);
-	std::size_t index = M - 1;
-	((this->attributes[++index] = std::forward<Attributes>(attributes)), ...);
-}
+    : RecordBase{level, std::forward<Str>(message)}
+    , Array<Attribute, N>{
+          details::append(
+              copiedAttributes, std::forward<Attributes>(attributes)...
+          ),
+      } {}
 
 template <size_t N>
 template <typename Str, typename... Attributes>
 inline Record<N>::Record(
     Level level, Str &&message, Attributes &&...attributes
 ) noexcept
-    : RecordBase(level, std::forward<Str>(message)) {
-	std::size_t index = -1;
-	((this->attributes[++index] = std::forward<Attributes>(attributes)), ...);
-}
+    : RecordBase(level, std::forward<Str>(message))
+    , Array<Attribute, N>(std::forward<Attributes>(attributes)...) {}
 
 template <size_t N>
 template <typename Timestamp, typename Str, typename... Attributes>
@@ -57,32 +69,19 @@ inline Record<N>::Record(
     Str       &&message,
     Attributes &&...attributes
 ) noexcept
-    : RecordBase(
-          std::forward<Timestamp>(timestamp), level, std::forward<Str>(message)
-      ) {
-	std::size_t index = -1;
-	((this->attributes[++index] = std::forward<Attributes>(attributes)), ...);
-}
+    : RecordBase{std::forward<Timestamp>(timestamp), level, std::forward<Str>(message)}
+    , Array<Attribute, N>(std::forward<Attribute>(attributes)...) {}
 
-template <size_t N>
-inline typename Record<N>::const_iterator Record<N>::begin() const noexcept {
-	return attributes.cbegin();
-}
+template <typename Str>
+Record<0>::Record(Level level, Str &&message) noexcept
+    : RecordBase{level, std::forward<Str>(message)} {}
 
-template <size_t N>
-inline typename Record<N>::const_iterator Record<N>::end() const noexcept {
-	return attributes.cend();
-}
+template <typename Timestamp, typename Str>
+Record<0>::Record(Timestamp &&timestamp, Level level, Str &&message) noexcept
+    : RecordBase{
+          std::forward<Timestamp>(timestamp),
+          level,
+          std::forward<Str>(message),
+      } {}
 
-template <size_t N>
-inline typename Record<N>::size_type Record<N>::size() const noexcept {
-	return N;
-}
-
-template <size_t N>
-inline typename Record<N>::const_reference Record<N>::operator[](size_type n
-) const noexcept {
-	return attributes[n];
-}
-
-} // namespace slog
+    } // namespace slog

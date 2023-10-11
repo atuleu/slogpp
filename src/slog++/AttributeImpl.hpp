@@ -60,7 +60,7 @@ inline Attribute Time(Str &&key, Timepoint &&timepoint) noexcept {
 
 template <typename Str, typename... Attributes>
 inline Attribute Group(Str &&key, Attributes &&...attributes) noexcept {
-	using Array = AttributeArray<sizeof...(Attributes)>;
+	using Array = Array<Attribute, sizeof...(Attributes)>;
 	return Attribute{
 	    std::forward<Str>(key),
 	    std::make_shared<Array>(std::forward<Attributes>(attributes)...),
