@@ -270,7 +270,7 @@ const std::string &levelName(Level level) {
 	    "DEBUG_1", "DEBUG_2", "DEBUG_3", "INFO",    "INFO_1",  "INFO_2",
 	    "INFO_3",  "WARN",    "WARN_1",  "WARN_2",  "WARN_3",  "ERROR",
 	    "ERROR_1", "ERROR_2", "ERROR_3", "CRITICAL"};
-	size_t idx(size_t(level) + 9);
+	size_t idx(size_t(level) + 1);
 	if (idx >= 22) {
 		return names[0];
 	}

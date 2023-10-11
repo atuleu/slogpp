@@ -15,16 +15,13 @@ public:
 
 	Logger(std::shared_ptr<Sink> sink) noexcept;
 
+	void SetSink(std::shared_ptr<Sink> sink) {
+		d_sink = std::move(sink);
+	}
+
 	template <typename... Attributes>
 	Logger<N + sizeof...(Attributes)> With(Attributes &&...attributes
 	) const noexcept;
-
-	template <
-	    typename Str,
-	    std::enable_if_t<std::is_convertible_v<Str, std::string>>>
-	Logger<N + 1> WithError(Str &&what) const noexcept;
-
-	Logger<N + 1> WithError(const std::exception &e) const noexcept;
 
 	template <typename Str, typename... Attributes>
 	void Log(Level level, Str &&msg, Attributes &&...attributes) const;

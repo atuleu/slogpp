@@ -1,13 +1,18 @@
 #pragma once
 
+#include <cstddef>
+
 namespace slog {
 
 enum class Level {
-	Trace    = -8,
-	Debug    = -4,
-	Info     = 0,
-	Warn     = 4,
-	Error    = 8,
-	Critical = 12,
+	Unknown  = -1,
+	Trace    = 0,
+	Debug    = 4,
+	Info     = 8,
+	Warn     = 12,
+	Error    = 16,
+	Critical = 20,
 };
-}
+
+constexpr size_t NumLevels = size_t(Level::Critical) + 2;
+} // namespace slog
