@@ -8,7 +8,7 @@ namespace slog {
 
 class MockSink : public Sink {
 public:
-	MOCK_METHOD(bool, Enabled, (Level lvl), (const override));
+	MOCK_METHOD(bool, Enabled, (Level lvl), (const, noexcept, override));
 	MOCK_METHOD(void, Log, (const RecordBase &), (override));
 };
 

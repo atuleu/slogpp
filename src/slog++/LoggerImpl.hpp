@@ -30,30 +30,6 @@ Logger<N>::With(Attributes &&...attributes) const noexcept {
 }
 
 template <size_t N>
-template <
-    typename Str,
-    std::enable_if_t<std::is_convertible_v<Str, std::string>>>
-inline Logger<N + 1> Logger<N>::WithError(Str &&what) const noexcept {
-	Logger<N + 1> result{d_sink};
-
-	std::copy(
-	    d_attributes.begin(),
-	    d_attributes.end(),
-	    result.d_attributes.begin()
-	);
-
-	result.d_attributes[N] = std::forward<Str>(what);
-
-	return result;
-}
-
-template <size_t N>
-inline Logger<N + 1> Logger<N>::WithError(const std::exception &e
-) const noexcept {
-	return WithError(e.what());
-}
-
-template <size_t N>
 template <typename Str, typename... Attributes>
 inline void
 Logger<N>::Log(Level level, Str &&msg, Attributes &&...attributes) const {

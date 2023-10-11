@@ -5,6 +5,7 @@ set(HDR_FILES
     Record.hpp #
     Formatters.hpp #
     Types.hpp #
+    Config.hpp #
 )
 
 set(SRC_FILES
@@ -12,12 +13,14 @@ set(SRC_FILES
     AttributeImpl.hpp #
     RecordImpl.hpp #
     FormattersImpl.hpp #
+    ConfigImpl.hpp #
 )
 
 set(TEST_SRC_FILES
     LoggerTest.cpp #
     AttributeTest.cpp #
     FormattersTest.cpp #
+    ConfigTest.cpp #
 )
 
 set(TEST_HDR_FILES

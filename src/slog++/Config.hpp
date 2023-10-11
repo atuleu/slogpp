@@ -16,9 +16,9 @@ enum class OutputFormat {
 
 struct BaseSinkConfig {
 
-	bool                        threadSafe    = false;
-	bool                        multiThreaded = false;
-	OutputFormat                format        = OutputFormat::JSON;
+	bool                        withLocking = false;
+	bool                        async       = false;
+	OutputFormat                format      = OutputFormat::JSON;
 	std::array<bool, NumLevels> levels;
 
 	BaseSinkConfig() {
@@ -38,71 +38,35 @@ struct FileSinkConfig : BaseSinkConfig {
 
 using SinkConfig = std::variant<ProgramOutputSinkConfig, FileSinkConfig>;
 
-// TODO: OpenTelemetry sink;
 struct Config {
 	std::vector<SinkConfig> sinks;
 };
 
 template <typename T> using Option = std::function<void(T &)>;
 
-inline Option<BaseSinkConfig> WithThreadSafeLock() {
-	return [](BaseSinkConfig &config) { config.threadSafe = true; };
-}
+Option<BaseSinkConfig> WithLocking();
 
-inline Option<BaseSinkConfig> WithMultiThread() {
-	return [](BaseSinkConfig &config) { config.multiThreaded = true; };
-}
+Option<BaseSinkConfig> WithAsync();
 
-inline Option<BaseSinkConfig> WithFormat(OutputFormat format) {
-	return [format](BaseSinkConfig &config) { config.format = format; };
-}
+Option<BaseSinkConfig> WithFormat(OutputFormat format);
 
-inline Option<BaseSinkConfig> WithLevelFrom(Level level) {
-	return [level](BaseSinkConfig &config) {
-		for (int i = int(level) + 1; i < int(Level::Critical) + 2; ++i) {
-			config.levels.levels[i] = true;
-		}
-	};
-}
+Option<BaseSinkConfig> FromLevel(Level level);
 
-inline Option<BaseSinkConfig> WithLevel(Level level) {
-	return [level](BaseSinkConfig &config) {
-		if (int(level) < Level::Critical + 2) {
-			config.levels.levels[int(level) + 1] = true;
-		}
-	};
-}
+template <typename... Levels>
+Option<BaseSinkConfig> WithLevel(Levels... levels);
 
-inline Option<ProgramOutputSinkConfig> WithStdoutOuput() {
-	return [](ProgramOutputSinkConfig &config) { config.stdout = true; };
-}
+Option<ProgramOutputSinkConfig> WithStdoutOutput();
 
-inline Option<ProgramOutputSinkConfig> WithForceColor() {
-	return [](ProgramOutputSinkConfig &config) { config.forceColor = true; };
-}
+Option<ProgramOutputSinkConfig> WithForceColor();
 
-inline Option<ProgramOutputSinkConfig> WithDisabledColor() {
-	return [](ProgramOutputSinkConfig &config) { config.disabledColor = true; };
-}
+Option<ProgramOutputSinkConfig> WithDisabledColor();
 
 template <typename... Configs>
-inline Option<Config> WithProgramOutput(Configs &&...configs) {
-	return [configs...](Config &config) {
-		ProgramOutputSinkConfig sinkConfig;
-		((std::forward<Configs>(configs)(sinkConfig)), ...);
-		config.sinks.push_back(sinkConfig);
-	};
-}
+Option<Config> WithProgramOutput(const Configs &...configs);
 
 template <typename... Configs>
-inline Option<Config>
-WithFileOutput(std::string filename, Configs &&...configs) {
-	return [filename, configs...](Config &config) {
-		FileSinkConfig sinkConfig;
-		sinkConfig.filepath = filename;
-		((std::forward<Configs>(configs)(sinkConfig)), ...);
-		config.sinks.push_back(sinkConfig);
-	};
-}
+Option<Config> WithFileOutput(std::string filename, const Configs &...configs);
 
 } // namespace slog
+
+#include "ConfigImpl.hpp"
