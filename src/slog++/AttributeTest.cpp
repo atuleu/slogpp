@@ -96,7 +96,7 @@ TEST_F(AttributeTest, Group) {
 	);
 	EXPECT_EQ(a.key, "group");
 	EXPECT_NO_THROW({
-		const std::vector<Attribute> &group = *std::get<GroupPtr>(a.value);
+		const auto &group = *std::get<GroupPtr>(a.value);
 		ASSERT_EQ(group.size(), 2);
 		EXPECT_EQ(group[0].key, "request");
 		EXPECT_EQ(std::get<std::string>(group[0].value), "https://example.com");

@@ -1,28 +1,10 @@
 #pragma once
 
-#include <chrono>
-#include <cstdint>
-#include <memory>
-#include <string>
+#include "Types.hpp"
+
 #include <type_traits>
-#include <variant>
-#include <vector>
 
 namespace slog {
-
-struct Attribute;
-
-/**
- * Represents a duration in nanosecond count.
- */
-typedef std::chrono::nanoseconds DurationT;
-
-/**
- * Represents a time by the number of nanosecond since EPOCH.
- */
-typedef std::chrono::
-    time_point<std::chrono::system_clock, std::chrono::nanoseconds>
-        TimeT;
 
 namespace details {
 
@@ -54,11 +36,6 @@ struct is_time_castable : std::integral_constant<
 
 } // namespace details
 
-typedef std::shared_ptr<std::vector<Attribute>> GroupPtr;
-
-using Value = std::
-    variant<bool, int64_t, double, std::string, DurationT, TimeT, GroupPtr>;
-
 struct Attribute {
 	std::string key;
 	Value       value;
@@ -66,8 +43,38 @@ struct Attribute {
 	bool operator==(const Attribute &other) const noexcept;
 };
 
-template <typename Str>
-Attribute Bool(Str &&key, bool value);
+template <size_t N>
+class AttributeArray : public AttributeContainer,
+                       public std::array<Attribute, N> {
+	using Array = std::array<Attribute, N>;
+
+public:
+	template <typename... Attributes>
+	AttributeArray(Attributes &&...attributes)
+	    : std::array<Attribute, N>{std::forward<Attributes>(attributes)...} {};
+
+	inline const_iterator begin() const noexcept override {
+		return static_cast<const Array *>(this)->cbegin();
+	}
+
+	inline const_iterator end() const noexcept override {
+		return static_cast<const Array *>(this)->cend();
+	}
+
+	inline size_type size() const noexcept override {
+		return static_cast<const Array *>(this)->size();
+	}
+
+	inline bool empty() const noexcept override {
+		return static_cast<const Array *>(this)->empty();
+	}
+
+	inline const_reference operator[](size_type n) const noexcept override {
+		return (*static_cast<const Array *>(this))[n];
+	}
+};
+
+template <typename Str> Attribute Bool(Str &&key, bool value);
 
 template <
     typename Str,

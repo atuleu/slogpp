@@ -4,6 +4,7 @@ set(HDR_FILES
     Level.hpp #
     Record.hpp #
     Formatters.hpp #
+    Types.hpp #
 )
 
 set(SRC_FILES
