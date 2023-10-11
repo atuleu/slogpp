@@ -79,10 +79,6 @@ inline typename Record<N>::size_type Record<N>::size() const noexcept {
 	return N;
 }
 
-template <size_t N> inline bool Record<N>::empty() const noexcept {
-	return N == 0;
-}
-
 template <size_t N>
 inline typename Record<N>::const_reference Record<N>::operator[](size_type n
 ) const noexcept {
