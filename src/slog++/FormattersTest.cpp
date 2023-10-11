@@ -31,7 +31,33 @@ TEST(Formatters, DurationT) {
 	};
 
 	for (const auto &data : testdata) {
-		EXPECT_EQ(slog::details::ToString(data.Duration), data.Expected);
+		std::string result;
+		EXPECT_NO_THROW(slog::details::FormatTo(data.Duration, false, result));
+		EXPECT_EQ(result, data.Expected);
+	}
+}
+
+TEST(Formatters, TimeT) {
+	struct TestData {
+		TimeT       Time;
+		std::string Expected;
+	};
+
+	using namespace std::chrono;
+	std::vector<TestData> testdata = {
+	    {TimeT{} + hours(48), "1970-01-03T00:00:00.000Z"},
+	    {TimeT{} + hours(24) + nanoseconds(1),
+	     "1970-01-02T00:00:00.000000001Z"},
+	    {TimeT{} + milliseconds(999) + nanoseconds(30),
+	     "1970-01-01T00:00:00.999000030Z"},
+	    {TimeT{} + microseconds(999), "1970-01-01T00:00:00.000999Z"},
+	    {TimeT{} + milliseconds(123), "1970-01-01T00:00:00.123Z"},
+	}; // namespace slog
+
+	for (const auto &data : testdata) {
+		std::string result;
+		EXPECT_NO_THROW(slog::details::FormatTo(data.Time, false, result));
+		EXPECT_EQ(result, data.Expected);
 	}
 }
 
@@ -48,24 +74,47 @@ TEST(Formatters, JSON) {
 	std::vector<TestData> testdata = {
 	    {
 	        "Simple",
-	        "{\"time\":86400.0,\"level\":\"INFO\","
+	        "{\"time\":\"1970-01-02T00:00:00.000Z\",\"level\":\"INFO\","
 	        "\"message\":\"simple logging\"}",
 	        std::make_unique<Record<0>>(ts, Level::Info, "simple logging"),
 	    },
-	    {"WithFields",
-	     "{\"time\":86400.0,\"level\":\"INFO\","
-	     "\"message\":\"simple attribute "
-	     "logging\",\"anInt\":1,\"aDouble\":1.5,\"aString\":\"hello "
-	     "world\",\"aTimeStamp\":\"1970-01-02T00:00:00.000Z\"}",
-	     std::make_shared<Record<4>>(
-	         ts,
-	         Level::Info,
-	         "simple attribute logging",
-	         Int("anInt", 1),
-	         Float("aDouble", 1.5),
-	         String("aString", "hello world"),
-	         Time("aTimestamp", TimeT{})
-	     )},
+	    {
+	        "WithFields",
+	        "{\"time\":\"1970-01-02T00:00:00.000Z\",\"level\":\"INFO\","
+	        "\"message\":\"simple attribute "
+	        "logging\",\"anInt\":1,\"aDouble\":1.5,\"aString\":\"hello "
+	        "world\",\"aDuration\":\"32µs\",\"aTimestamp\":\"1970-01-01T00:00:"
+	        "00."
+	        "000Z\"}",
+	        std::make_shared<Record<5>>(
+	            ts,
+	            Level::Info,
+	            "simple attribute logging",
+	            Int("anInt", 1),
+	            Float("aDouble", 1.5),
+	            String("aString", "hello world"),
+	            Duration("aDuration", std::chrono::microseconds(32)),
+	            Time("aTimestamp", TimeT{})
+	        ),
+	    },
+	    {
+	        "WithGroup",
+	        "{\"time\":\"1970-01-02T00:00:00.000Z\",\"level\":\"INFO\","
+	        "\"message\":\"grouped attribute "
+	        "logging\",\"aGroup\":{\"request\":\"https://example.com/"
+	        "\",\"status\":200}}",
+	        std::make_shared<Record<1>>(
+	            ts,
+	            Level::Info,
+	            "grouped attribute logging",
+	            Group(
+	                "aGroup",
+	                String("request", "https://example.com/"),
+	                Int("status", 200)
+	            )
+	        ),
+	    },
+
 	};
 
 	for (const auto &data : testdata) {
