@@ -43,52 +43,23 @@ struct Attribute {
 	bool operator==(const Attribute &other) const noexcept;
 };
 
-template <typename T, size_t N, std::enable_if_t<N >= 1> * = nullptr>
-class Array : virtual public Container<Attribute> {
+namespace details {
+
+template <size_t N> class Group : public GroupT {
 public:
-	template <typename... U>
-	Array(U &&...values)
-	    : d_data{std::forward<U>(values)...} {};
-
-	const_iterator cbegin() const noexcept override {
-		return d_data;
-	}
-
-	const_iterator cend() const noexcept override {
-		return d_data + N;
-	}
-
-	const_iterator begin() const noexcept override {
-		return d_data;
-	}
-
-	const_iterator end() const noexcept override {
-		return d_data + N;
-	}
-
-	iterator begin() noexcept override {
-		return d_data;
-	}
-
-	iterator end() noexcept override {
-		return d_data + N;
-	}
-
-	size_type size() const noexcept override {
-		return N;
-	}
-
-	reference operator[](size_type n) noexcept override {
-		return d_data[n];
-	}
-
-	const_reference operator[](size_type n) const noexcept override {
-		return d_data[n];
-	}
+	template <typename... Attributes>
+	inline Group(Attributes &&...attributes)
+	    : d_data{std::forward<Attributes>(attributes)...} {
+		this->attributes = ContainerReference<Attribute>(d_data);
+	};
 
 private:
-	T d_data[N];
+	std::array<Attribute, N> d_data;
 };
+
+template <> class Group<0> : public GroupT {};
+
+} // namespace details
 
 template <typename Str> Attribute Bool(Str &&key, bool value);
 

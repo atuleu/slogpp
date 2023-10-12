@@ -27,12 +27,20 @@ using ::testing::Return;
 using ::testing::StrEq;
 
 inline constexpr auto HasLevel = [](const auto &level) {
-	return Field("level", &RecordBase::level, Eq(level));
+	return Field("level", &Record::level, Eq(level));
 };
 
 inline constexpr auto HasMessage = [](const auto &message) {
-	return Field("message", &RecordBase::message, StrEq(message));
+	return Field("message", &Record::message, StrEq(message));
 };
+
+template <typename... Attributes>
+auto HasAttributes(Attributes &&...attributes) {
+	std::initializer_list<Attribute> attrs = {
+	    static_cast<Attribute>(attributes)...,
+	};
+	return Field("attributes", &Record::attributes, ElementsAreArray(attrs));
+}
 
 TEST_F(LoggerTest, LogHelperFunction) {
 
@@ -72,7 +80,7 @@ TEST_F(LoggerTest, LogHelperFunction) {
 		    Log(AllOf(
 		        HasLevel(data.level),
 		        HasMessage(data.message),
-		        BeginEndDistanceIs(0)
+		        HasAttributes()
 		    ))
 		);
 
@@ -102,9 +110,8 @@ TEST_F(LoggerTest, AttributeLogging) {
 		    Log(AllOf(
 		        HasLevel(Level::Info),
 		        HasMessage("with attribute"),
-		        ElementsAreArray({Int("status", 200)})
+		        HasAttributes(Int("status", 200))
 		    ))
-
 		);
 	}
 
@@ -123,10 +130,10 @@ TEST_F(LoggerTest, AttributePropagation) {
 		    Log(AllOf(
 		        HasLevel(Level::Warn),
 		        HasMessage("unknown resource"),
-		        ElementsAreArray({
+		        HasAttributes(
 		            String("request", "https://example.com"),
-		            Int("status", 404),
-		        })
+		            Int("status", 404)
+		        )
 		    ))
 		);
 	}

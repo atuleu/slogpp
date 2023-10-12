@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Record.hpp"
+#include "Types.hpp"
 #include <algorithm>
 #include <chrono>
 #include <iterator>
@@ -8,35 +9,32 @@
 namespace slog {
 
 template <typename Str>
-inline RecordBase::RecordBase(Level level, Str &&message) noexcept
-    : timestamp(std::chrono::system_clock::now())
-    , level(level)
-    , message(std::forward<Str>(message)) {}
+inline Record::Record(Level level, Str &&message) noexcept
+    : timestamp{std::chrono::system_clock::now()}
+    , level{level}
+    , message{std::forward<Str>(message)} {}
 
 template <typename Timestamp, typename Str>
-inline RecordBase::RecordBase(
-    Timestamp &&time, Level level, Str &&message
-) noexcept
-    : timestamp(std::forward<Timestamp>(time))
-    , level(level)
-    , message(std::forward<Str>(message)) {}
+inline Record::Record(Timestamp &&time, Level level, Str &&message) noexcept
+    : timestamp{std::forward<Timestamp>(time)}
+    , level{level}
+    , message{std::forward<Str>(message)} {}
 
 namespace details {
-template <typename T, size_t N, typename... U>
-Array<T, N + sizeof...(U)>
-append(const std::array<T, N> &array, U &&...values) {
 
-	Array<T, N + sizeof...(U)> result;
-
-	std::copy(array.begin(), array.end(), result.begin());
-
+template <
+    typename T,
+    size_t N,
+    typename... U,
+    std::enable_if_t<(N + sizeof...(U)) >= 1> * = nullptr>
+std::array<T, N + sizeof...(U)>
+append(const std::array<T, N> &a, U &&...values) {
+	std::array<T, N + sizeof...(U)> result{};
+	std::copy(a.begin(), a.end(), result.begin());
 	std::size_t index = N - 1;
 	((result[++index] = std::forward<U>(values)), ...);
-
 	return result;
 }
-
-} // namespace details
 
 template <size_t N>
 template <typename Str, size_t M, typename... Attributes>
@@ -46,20 +44,24 @@ inline Record<N>::Record(
     const std::array<Attribute, M> &copiedAttributes,
     Attributes &&...attributes
 ) noexcept
-    : RecordBase{level, std::forward<Str>(message)}
-    , Array<Attribute, N>{
+    : slog::Record{level, std::forward<Str>(message)}
+    , d_data{
           details::append(
               copiedAttributes, std::forward<Attributes>(attributes)...
           ),
-      } {}
+      } {
+	this->attributes = ContainerReference<Attribute>{d_data};
+}
 
 template <size_t N>
 template <typename Str, typename... Attributes>
 inline Record<N>::Record(
     Level level, Str &&message, Attributes &&...attributes
 ) noexcept
-    : RecordBase(level, std::forward<Str>(message))
-    , Array<Attribute, N>(std::forward<Attributes>(attributes)...) {}
+    : slog::Record{level, std::forward<Str>(message)}
+    , d_data{std::forward<Attributes>(attributes)...} {
+	this->attributes = ContainerReference<Attribute>(d_data);
+}
 
 template <size_t N>
 template <typename Timestamp, typename Str, typename... Attributes>
@@ -69,19 +71,23 @@ inline Record<N>::Record(
     Str       &&message,
     Attributes &&...attributes
 ) noexcept
-    : RecordBase{std::forward<Timestamp>(timestamp), level, std::forward<Str>(message)}
-    , Array<Attribute, N>(std::forward<Attribute>(attributes)...) {}
+    : slog::
+          Record{std::forward<Timestamp>(timestamp), level, std::forward<Str>(message)}
+    , d_data{std::forward<Attribute>(attributes)...} {
+	this->attributes = ContainerReference<Attribute>(d_data);
+}
 
 template <typename Str>
 Record<0>::Record(Level level, Str &&message) noexcept
-    : RecordBase{level, std::forward<Str>(message)} {}
+    : slog::Record{level, std::forward<Str>(message)} {}
 
 template <typename Timestamp, typename Str>
 Record<0>::Record(Timestamp &&timestamp, Level level, Str &&message) noexcept
-    : RecordBase{
+    : slog::Record{
           std::forward<Timestamp>(timestamp),
           level,
           std::forward<Str>(message),
       } {}
+} // namespace details
 
-    } // namespace slog
+} // namespace slog

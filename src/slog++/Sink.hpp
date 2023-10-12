@@ -4,7 +4,7 @@
 #include <array>
 
 namespace slog {
-class RecordBase;
+class Record;
 class BaseSinkConfig;
 
 class Sink {
@@ -13,7 +13,7 @@ public:
 
 	virtual bool Enabled(Level lvl) const noexcept = 0;
 
-	virtual void Log(const RecordBase &record) = 0;
+	virtual void Log(const Record &record) = 0;
 };
 
 }; // namespace slog

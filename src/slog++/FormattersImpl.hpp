@@ -287,7 +287,7 @@ inline void attributeToJSON(const Attribute &attribute, Buffer &buffer) {
 		    using T = std::decay_t<decltype(arg)>;       // cast away references
 		    if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
 			    auto prefix = '{';
-			    for (const auto &attr : *arg) {
+			    for (const auto &attr : arg->attributes) {
 				    buffer += prefix;
 				    prefix = ',';
 				    attributeToJSON(attr, buffer);
@@ -315,7 +315,7 @@ inline void attributeToText(
 		    if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
 			    auto prefix = name + ".";
 			    auto sep    = "";
-			    for (const auto &attr : *arg) {
+			    for (const auto &attr : arg->attributes) {
 				    buffer += sep;
 				    sep = " ";
 				    attributeToText(attr, prefix, buffer);
@@ -335,7 +335,7 @@ inline void attributeToText(
 
 } // namespace details
 
-inline void RecordToJSON(const RecordBase &record, std::string &buffer) {
+inline void RecordToJSON(const Record &record, std::string &buffer) {
 	buffer += "{\"time\":";
 	details::FormatTo(record.timestamp, true, buffer);
 
@@ -344,7 +344,7 @@ inline void RecordToJSON(const RecordBase &record, std::string &buffer) {
 	buffer += ",\"message\":";
 	details::FormatTo(record.message, true, buffer);
 
-	for (const Attribute &attribute : record) {
+	for (const Attribute &attribute : record.attributes) {
 		buffer += ",";
 		details::attributeToJSON(attribute, buffer);
 	}
@@ -352,14 +352,14 @@ inline void RecordToJSON(const RecordBase &record, std::string &buffer) {
 	buffer += "}";
 }
 
-inline void RecordToText(const RecordBase &record, std::string &buffer) {
+inline void RecordToText(const Record &record, std::string &buffer) {
 	details::FormatTo(record.timestamp, false, buffer);
 
 	buffer += " " + details::levelName(record.level) + " ";
 
 	details::FormatTo(record.message, false, buffer);
 
-	for (const Attribute &attribute : record) {
+	for (const Attribute &attribute : record.attributes) {
 		buffer += " ";
 		details::attributeToText(attribute, "", buffer);
 	}

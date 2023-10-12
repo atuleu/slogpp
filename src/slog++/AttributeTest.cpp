@@ -97,11 +97,14 @@ TEST_F(AttributeTest, Group) {
 	EXPECT_EQ(a.key, "group");
 	EXPECT_NO_THROW({
 		const auto &group = *std::get<GroupPtr>(a.value);
-		ASSERT_EQ(group.size(), 2);
-		EXPECT_EQ(group[0].key, "request");
-		EXPECT_EQ(std::get<std::string>(group[0].value), "https://example.com");
-		EXPECT_EQ(group[1].key, "status");
-		EXPECT_EQ(std::get<int64_t>(group[1].value), 200);
+		ASSERT_EQ(group.attributes.size(), 2);
+		EXPECT_EQ(group.attributes[0].key, "request");
+		EXPECT_EQ(
+		    std::get<std::string>(group.attributes[0].value),
+		    "https://example.com"
+		);
+		EXPECT_EQ(group.attributes[1].key, "status");
+		EXPECT_EQ(std::get<int64_t>(group.attributes[1].value), 200);
 	});
 }
 

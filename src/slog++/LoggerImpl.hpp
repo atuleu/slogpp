@@ -40,7 +40,7 @@ Logger<N>::Log(Level level, Str &&msg, Attributes &&...attributes) const {
 	}
 
 	// build the record.
-	Record<N + sizeof...(Attributes)> record(
+	details::Record<N + sizeof...(Attributes)> record(
 	    level,
 	    std::forward<Str>(msg),
 	    d_attributes,
@@ -61,7 +61,7 @@ Logger<0>::Log(Level level, Str &&msg, Attributes &&...attributes) const {
 	}
 
 	// build the record.
-	Record<sizeof...(Attributes)> record(
+	details::Record<sizeof...(Attributes)> record(
 	    level,
 	    std::forward<Str>(msg),
 	    std::forward<Attributes>(attributes)...

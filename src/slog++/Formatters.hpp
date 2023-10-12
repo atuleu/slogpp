@@ -6,13 +6,13 @@ namespace slog {
 
 using Buffer = std::string;
 
-class RecordBase;
+class Record;
 
-using Formatter = void (*)(const RecordBase &record, Buffer &);
+using Formatter = void (*)(const Record &record, Buffer &);
 
-void RecordToJSON(const RecordBase &record, Buffer &);
+void RecordToJSON(const Record &record, Buffer &);
 
-void RecordToText(const RecordBase &record, Buffer &);
+void RecordToText(const Record &record, Buffer &);
 
 } // namespace slog
 
