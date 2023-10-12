@@ -33,6 +33,7 @@ set(TEST_SRC_FILES
     FormattersTest.cpp #
     ConfigTest.cpp #
     utils/ObjectPoolTest.cpp #
+    slog++Test.cpp #
 )
 
 set(TEST_HDR_FILES

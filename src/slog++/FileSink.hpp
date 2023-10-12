@@ -2,6 +2,7 @@
 
 #include "Config.hpp"
 #include "SinkDetails.hpp"
+#include <cstdio>
 
 namespace slog {
 
@@ -26,6 +27,7 @@ public:
 
 	void Log(utils::ObjectPool<Buffer>::Ptr &&buffer) {
 		std::fwrite(buffer->data(), sizeof(char), buffer->size(), d_file.get());
+		std::fputc('\n', d_file.get());
 	}
 
 private:

@@ -29,13 +29,15 @@ template <typename T, ConcurencyMode CM> class Sink : public slog::Sink {
 public:
 	using LevelArray = std::array<bool, NumLevels>;
 
-	Sink(const LevelArray &array, Formatter formatter);
+	inline Sink(const LevelArray &array, Formatter formatter)
+	    : d_levels{array}
+	    , d_formatter{formatter} {}
 
 	inline bool AllocateOnStack() const noexcept override {
 		return (CM & Async) != 0;
-	}
+}
 
-	inline void Log(slog::Sink::RecordVariant &&record) override {
+    inline void Log(slog::Sink::RecordVariant &&record) override {
 		static_cast<T *>(this)->LogImpl(std::move(record));
 	}
 

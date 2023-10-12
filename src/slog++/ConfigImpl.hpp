@@ -94,7 +94,10 @@ inline void Sanitize(Config &config) {
 	// if no sink, add a default synchronous sink to STDERR, without locking
 	// with Text format.
 	if (config.sinks.empty()) {
-		WithProgramOutput(WithFormat(OutputFormat::TEXT))(config);
+		WithProgramOutput(
+		    WithFormat(OutputFormat::TEXT),
+		    FromLevel(Level::Info)
+		)(config);
 	}
 
 	// if async sync are needed, set wanted threadpool size.

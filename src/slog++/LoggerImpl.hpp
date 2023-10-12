@@ -5,6 +5,7 @@
 #include "Sink.hpp"
 
 #include <algorithm>
+#include <ios>
 #include <memory>
 #include <utility>
 
@@ -35,7 +36,6 @@ template <size_t N>
 template <typename Str, typename... Attributes>
 inline void
 Logger<N>::Log(Level level, Str &&msg, Attributes &&...attributes) const {
-
 	// early discard the entry
 	if (!d_sink || !d_sink->Enabled(level)) {
 		return;
@@ -69,15 +69,14 @@ template <>
 template <typename Str, typename... Attributes>
 inline void
 Logger<0>::Log(Level level, Str &&msg, Attributes &&...attributes) const {
-
 	// early discard the entry
 	if (!d_sink || !d_sink->Enabled(level)) {
 		return;
 	}
 
 	constexpr size_t RecordSize = sizeof...(Attributes);
-
 	if (d_sink->AllocateOnStack() == true) {
+
 		details::Record<RecordSize> record(
 		    level,
 		    std::forward<Str>(msg),
