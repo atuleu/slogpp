@@ -105,7 +105,7 @@ TEST(BaseSinkConfig, Options) {
 	                SubLevel<Level::Error, 1>,
 	                SubLevel<Level::Error, 2>,
 	                SubLevel<Level::Error, 3>,
-	                Level::Critical,
+	                Level::Fatal,
 	            }
 	        ),
 	    },
@@ -193,8 +193,10 @@ TEST(Config, Default) {
 	EXPECT_THAT(config.sinks, ::testing::IsEmpty());
 }
 
-template <typename... Sinks> Config buildConfig(Sinks &&...sinks) {
+template <typename... Sinks>
+Config buildConfig(size_t threadPoolSize, Sinks &&...sinks) {
 	Config config;
+	config.threadPoolSize = threadPoolSize;
 	(config.sinks.emplace_back(std::forward<Sinks>(sinks)), ...);
 	return config;
 }
@@ -270,12 +272,17 @@ TEST(Config, Options) {
 	    {
 	        "WithProgramOutput",
 	        WithProgramOutput(),
-	        buildConfig(ProgramOutputSinkConfig{}),
+	        buildConfig(0, ProgramOutputSinkConfig{}),
 	    },
 	    {
 	        "WithFileOutput",
 	        WithFileOutput("foo.log"),
-	        buildConfig(buildFileSinkConfig("foo.log")),
+	        buildConfig(0, buildFileSinkConfig("foo.log")),
+	    },
+	    {
+	        "WithThreadPoolSize",
+	        WithThreadPoolSize(2),
+	        buildConfig(2),
 	    },
 	    {
 	        "Complex",
@@ -284,6 +291,7 @@ TEST(Config, Options) {
 	            WithFileOutput("foo.log", WithAsync())
 	        ),
 	        buildConfig(
+	            0,
 	            buildProgramOutputSinkConfig(true, false, true),
 	            buildFileSinkConfig("foo.log", false, true)
 	        ),

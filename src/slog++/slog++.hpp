@@ -6,23 +6,9 @@
 namespace slog {
 
 template <typename... Options>
-std::shared_ptr<Sink> BuildSink(Options &&...options) {
-	Config config;
-	((options(config)), ...);
+std::shared_ptr<Sink> BuildSink(Options &&...options);
 
-	if (config.sinks.empty()) {
-		// if no sink are specified, default to stderr in text format.
-		WithProgramOutput(WithFormat(OutputFormat::TEXT))(config);
-	}
-
-	auto buildSink = [](auto &&sinkConfig) -> std::shared_ptr<Sink> {
-		return nullptr;
-	}
-
-	return nullptr;
-}
-
-static const inline Logger<0> defaultLogger = Logger(BuildSink());
+inline static Logger<0> defaultLogger = Logger<0>(BuildSink());
 
 inline void SetSink(const std::shared_ptr<Sink> &sink) {
 	defaultLogger.SetSink(sink);
@@ -91,3 +77,5 @@ inline void Fatal(Str &&message, Attributes &&...attributes) {
 }
 
 } // namespace slog
+
+#include "slog++Impl.hpp"

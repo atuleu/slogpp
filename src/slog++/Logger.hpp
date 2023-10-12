@@ -62,8 +62,8 @@ public:
 	};
 
 	template <typename Str, typename... Attributes>
-	inline void Critical(Str &&msg, Attributes &&...attributes) const {
-		Log(Level::Critical,
+	inline void Fatal(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Fatal,
 		    std::forward<Str>(msg),
 		    std::forward<Attributes>(attributes)...);
 	};

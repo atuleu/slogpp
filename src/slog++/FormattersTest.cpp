@@ -74,22 +74,16 @@ TEST(Formatters, JSON) {
 	std::vector<TestData> testdata = {
 	    {
 	        "Simple",
-	        "{\"time\":\"1970-01-02T00:00:00.000Z\",\"level\":\"INFO\","
-	        "\"message\":\"simple logging\"}",
+	        R"--({"time":"1970-01-02T00:00:00.000Z","level":"INFO","message":"simple logging"})--",
 	        std::make_unique<details::Record<0>>(
 	            ts,
 	            Level::Info,
 	            "simple logging"
 	        ),
 	    },
-	    /*	    {
+	    {
 	        "WithFields",
-	        "{\"time\":\"1970-01-02T00:00:00.000Z\",\"level\":\"INFO\","
-	        "\"message\":\"simple attribute "
-	        "logging\",\"anInt\":1,\"aDouble\":1.5,\"aString\":\"hello "
-	        "world\",\"aDuration\":\"32µs\",\"aTimestamp\":\"1970-01-01T00:00:"
-	        "00."
-	        "000Z\"}",
+	        R"--({"time":"1970-01-02T00:00:00.000Z","level":"INFO","message":"simple attribute logging","anInt":1,"aDouble":1.5,"aString":"hello world","aDuration":"32µs","aTimestamp":"1970-01-01T00:00:00.000Z"})--",
 	        std::make_shared<details::Record<5>>(
 	            ts,
 	            Level::Info,
@@ -103,10 +97,7 @@ TEST(Formatters, JSON) {
 	    },
 	    {
 	        "WithGroup",
-	        "{\"time\":\"1970-01-02T00:00:00.000Z\",\"level\":\"INFO\","
-	        "\"message\":\"grouped attribute "
-	        "logging\",\"aGroup\":{\"request\":\"https://example.com/"
-	        "\",\"status\":200}}",
+	        R"--({"time":"1970-01-02T00:00:00.000Z","level":"INFO","message":"grouped attribute logging","aGroup":{"request":"https://example.com/","status":200}})--",
 	        std::make_shared<details::Record<1>>(
 	            ts,
 	            Level::Info,
@@ -117,7 +108,7 @@ TEST(Formatters, JSON) {
 	                Int("status", 200)
 	            )
 	        ),
-	        },*/
+	    },
 
 	};
 
@@ -129,7 +120,7 @@ TEST(Formatters, JSON) {
 	}
 }
 
-TEST(Formatters, Text) {
+TEST(Formatters, RawText) {
 	struct TestData {
 		std::string             Name;
 		std::string             Expected;
@@ -147,9 +138,7 @@ TEST(Formatters, Text) {
 	    },
 	    {
 	        "WithFields",
-	        "1970-01-02T00:00:00.000Z ERROR \"simple attribute logging\" "
-	        "anInt=1 aDouble=1.5 aString=\"hello "
-	        "world\" aDuration=32µs aTimestamp=1970-01-01T00:00:00.000Z",
+	        R"--(1970-01-02T00:00:00.000Z ERROR "simple attribute logging" anInt=1 aDouble=1.5 aString="hello world" aDuration=32µs aTimestamp=1970-01-01T00:00:00.000Z)--",
 	        std::make_shared<details::Record<5>>(
 	            ts,
 	            Level::Error,
@@ -163,16 +152,114 @@ TEST(Formatters, Text) {
 	    },
 	    {
 	        "WithGroup",
-	        "1970-01-02T00:00:00.000Z DEBUG \"grouped attribute logging\" "
-	        "aGroup.request=https://example.com/ aGroup.status=200",
+	        R"--(1970-01-02T00:00:00.000Z DEBUG "grouped attribute logging" request.URL=https://example.com/ request.status=200)--",
 	        std::make_shared<details::Record<1>>(
 	            ts,
 	            Level::Debug,
 	            "grouped attribute logging",
 	            Group(
-	                "aGroup",
-	                String("request", "https://example.com/"),
+	                "request",
+	                String("URL", "https://example.com/"),
 	                Int("status", 200)
+	            )
+	        ),
+	    },
+	};
+
+	for (const auto &data : testdata) {
+		SCOPED_TRACE(data.Name);
+		std::string buffer;
+		EXPECT_NO_THROW(RecordToRawText(*data.Input, buffer));
+		EXPECT_EQ(buffer, data.Expected);
+	}
+}
+
+TEST(Formatters, ANSIText) {
+	struct TestData {
+		std::string             Name;
+		std::string             Expected;
+		std::shared_ptr<Record> Input;
+	};
+
+	TimeT ts{};
+	ts += std::chrono::hours(24);
+
+	std::vector<TestData> testdata = {
+	    {
+	        "Simple",
+	        "1970-01-02T00:00:00.000Z \033[33mWARN\033[m simple",
+	        std::make_unique<details::Record<0>>(ts, Level::Warn, "simple"),
+	    },
+	    {
+	        "WithFields",
+	        "1970-01-02T00:00:00.000Z "
+	        "\033[31mERROR\033[m "
+	        R"--("simple attribute logging"
+├── anInt=1
+├── aDouble=1.5
+├── aString="hello world"
+├── aDuration=32ms
+└── aTimestamp=1970-01-01T00:00:00.000Z)--",
+	        std::make_shared<details::Record<5>>(
+	            ts,
+	            Level::Error,
+	            "simple attribute logging",
+	            Int("anInt", 1),
+	            Float("aDouble", 1.5),
+	            String("aString", "hello world"),
+	            Duration("aDuration", std::chrono::milliseconds(32)),
+	            Time("aTimestamp", TimeT{})
+	        ),
+	    },
+	    {
+	        "WithGroup",
+	        "1970-01-02T00:00:00.000Z "
+	        "\033[34mDEBUG\033[m "
+	        R"--("grouped attribute logging"
+└── request
+    ├── URL=https://example.com/
+    └── status=200)--",
+	        std::make_shared<details::Record<1>>(
+	            ts,
+	            Level::Debug,
+	            "grouped attribute logging",
+	            Group(
+	                "request",
+	                String("URL", "https://example.com/"),
+	                Int("status", 200)
+	            )
+	        ),
+	    },
+	    {
+	        "MultipleGroup",
+	        "1970-01-02T00:00:00.000Z "
+	        "TRACE_1\033[m "
+	        R"--("multiple group attribute logging"
+├── request
+│   ├── URL=https://example.com/
+│   └── status=200
+└── meta
+    ├── caching
+    │   ├── cached=false
+    │   └── processTime=12µs
+    └── sizeKB=2345)--",
+	        std::make_shared<details::Record<2>>(
+	            ts,
+	            SubLevel<Level::Trace, 1>,
+	            "multiple group attribute logging",
+	            Group(
+	                "request",
+	                String("URL", "https://example.com/"),
+	                Int("status", 200)
+	            ),
+	            Group(
+	                "meta",
+	                Group(
+	                    "caching",
+	                    Bool("cached", false),
+	                    Duration("processTime", std::chrono::microseconds(12))
+	                ),
+	                Int("sizeKB", 2345)
 	            )
 	        ),
 	    },
@@ -182,8 +269,8 @@ TEST(Formatters, Text) {
 	for (const auto &data : testdata) {
 		SCOPED_TRACE(data.Name);
 		std::string buffer;
-		EXPECT_NO_THROW(RecordToText(*data.Input, buffer));
-		EXPECT_EQ(buffer, data.Expected);
+		EXPECT_NO_THROW(RecordToANSIText(*data.Input, buffer));
+		EXPECT_EQ(buffer, data.Expected) << buffer;
 	}
 }
 

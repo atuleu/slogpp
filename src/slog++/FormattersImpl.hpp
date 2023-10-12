@@ -266,10 +266,46 @@ void FormatTo(const TimeT &time, bool quote, Buffer &buffer) {
 
 const std::string &levelName(Level level) {
 	static std::array<std::string, 22> names = {
-	    "UNKNOWN", "TRACE",   "TRACE_1", "TRACE_2", "TRACE_3", "DEBUG",
-	    "DEBUG_1", "DEBUG_2", "DEBUG_3", "INFO",    "INFO_1",  "INFO_2",
-	    "INFO_3",  "WARN",    "WARN_1",  "WARN_2",  "WARN_3",  "ERROR",
-	    "ERROR_1", "ERROR_2", "ERROR_3", "CRITICAL"};
+	    "UNKNOWN",                                  //
+	    "TRACE",   "TRACE_1", "TRACE_2", "TRACE_3", //
+	    "DEBUG",   "DEBUG_1", "DEBUG_2", "DEBUG_3", //
+	    "INFO",    "INFO_1",  "INFO_2",  "INFO_3",  //
+	    "WARN",    "WARN_1",  "WARN_2",  "WARN_3",  //
+	    "ERROR",   "ERROR_1", "ERROR_2", "ERROR_3", //
+	    "FATAL",
+	};
+	size_t idx(size_t(level) + 1);
+	if (idx >= 22) {
+		return names[0];
+	}
+	return names[idx];
+}
+
+const std::string &levelColor(Level level) {
+	static std::array<std::string, 22> names = {
+	    "", // Level::Unknown  default
+	    "",
+	    "",
+	    "",
+	    "", // Level::Trace default
+	    "\033[34m",
+	    "\033[34m",
+	    "\033[34m",
+	    "\033[34m", // Level::Debug Blue on default
+	    "\033[36m",
+	    "\033[36m",
+	    "\033[36m",
+	    "\033[36m", // Level::Info Cyan on default
+	    "\033[33m",
+	    "\033[33m",
+	    "\033[33m",
+	    "\033[33m", // Level::Warn Yellow on default
+	    "\033[31m",
+	    "\033[31m",
+	    "\033[31m",
+	    "\033[31m",    // Level::Error Red on default
+	    "\033[37;41m", // Level::Fatal white on red
+	};
 	size_t idx(size_t(level) + 1);
 	if (idx >= 22) {
 		return names[0];
@@ -333,6 +369,42 @@ inline void attributeToText(
 	);
 }
 
+inline void attributeToTree(
+    const Attribute   &attribute,
+    const std::string &parentPrefix,
+    bool               isLast,
+    Buffer            &buffer
+) {
+	std::string prefix = parentPrefix + (isLast ? "└── " : "├── ");
+
+	std::visit(
+	    [&, prefix, parentIsLast = isLast](auto &&arg) {
+		    using T = std::decay_t<decltype(arg)>;       // cast away references
+		    if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a
+			                                             // group
+			    buffer += prefix + attribute.key;
+
+			    auto newTreePrefix = parentIsLast ? (parentPrefix + "    ")
+			                                      : (parentPrefix + "│   ");
+
+			    size_t index = 0;
+			    for (const auto &attr : arg->attributes) {
+				    bool isLast = ++index == arg->attributes.size();
+				    attributeToTree(attr, newTreePrefix, isLast, buffer);
+			    }
+		    } else {
+			    buffer += prefix + attribute.key + "=";
+			    details::FormatTo(
+			        std::forward<decltype(arg)>(arg),
+			        false,
+			        buffer
+			    );
+		    }
+	    },
+	    attribute.value
+	);
+}
+
 } // namespace details
 
 inline void RecordToJSON(const Record &record, std::string &buffer) {
@@ -352,7 +424,7 @@ inline void RecordToJSON(const Record &record, std::string &buffer) {
 	buffer += "}";
 }
 
-inline void RecordToText(const Record &record, std::string &buffer) {
+inline void RecordToRawText(const Record &record, Buffer &buffer) {
 	details::FormatTo(record.timestamp, false, buffer);
 
 	buffer += " " + details::levelName(record.level) + " ";
@@ -362,6 +434,20 @@ inline void RecordToText(const Record &record, std::string &buffer) {
 	for (const Attribute &attribute : record.attributes) {
 		buffer += " ";
 		details::attributeToText(attribute, "", buffer);
+	}
+}
+
+inline void RecordToANSIText(const Record &record, Buffer &buffer) {
+	details::FormatTo(record.timestamp, false, buffer);
+
+	buffer += " " + details::levelColor(record.level) +
+	          details::levelName(record.level) + "\033[m ";
+	details::FormatTo(record.message, false, buffer);
+
+	size_t idx = 0;
+	for (const Attribute &attribute : record.attributes) {
+		bool isLast = ++idx == record.attributes.size();
+		details::attributeToTree(attribute, "\n", isLast, buffer);
 	}
 }
 

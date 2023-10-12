@@ -12,7 +12,9 @@ using Formatter = void (*)(const Record &record, Buffer &);
 
 void RecordToJSON(const Record &record, Buffer &);
 
-void RecordToText(const Record &record, Buffer &);
+void RecordToRawText(const Record &record, Buffer &);
+
+void RecordToANSIText(const Record &record, Buffer &);
 
 } // namespace slog
 

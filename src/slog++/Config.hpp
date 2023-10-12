@@ -40,6 +40,7 @@ using SinkConfig = std::variant<ProgramOutputSinkConfig, FileSinkConfig>;
 
 struct Config {
 	std::vector<SinkConfig> sinks;
+	size_t                  threadPoolSize = 0;
 };
 
 template <typename T> using Option = std::function<void(T &)>;
@@ -66,6 +67,8 @@ Option<Config> WithProgramOutput(const Configs &...configs);
 
 template <typename... Configs>
 Option<Config> WithFileOutput(std::string filename, const Configs &...configs);
+
+Option<Config> WithThreadPoolSize(size_t size);
 
 } // namespace slog
 

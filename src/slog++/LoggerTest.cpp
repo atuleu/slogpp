@@ -66,9 +66,9 @@ TEST_F(LoggerTest, LogHelperFunction) {
 	    {Level::Error,
 	     "error-message",
 	     [this](const std::string &msg) { logger->Error(msg); }},
-	    {Level::Critical,
-	     "critical-message",
-	     [this](const std::string &msg) { logger->Critical(msg); }},
+	    {Level::Fatal,
+	     "fatal-message",
+	     [this](const std::string &msg) { logger->Fatal(msg); }},
 	};
 
 	for (const auto &data : testdata) {

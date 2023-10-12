@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Config.hpp"
+#include "Level.hpp"
 #include <type_traits>
 
 namespace slog {
@@ -19,7 +20,7 @@ inline Option<BaseSinkConfig> WithFormat(OutputFormat format) {
 
 inline Option<BaseSinkConfig> FromLevel(Level level) {
 	return [level](BaseSinkConfig &config) {
-		for (int i = int(level) + 1; i < int(Level::Critical) + 2; ++i) {
+		for (int i = int(level) + 1; i < NumLevels; ++i) {
 			config.levels[i] = true;
 		}
 	};
@@ -79,5 +80,34 @@ WithFileOutput(std::string filename, const Configs &...configs) {
 		config.sinks.push_back(sinkConfig);
 	};
 }
+
+inline Option<Config> WithThreadPoolSize(size_t size) {
+	return [size](Config &config) { config.threadPoolSize = size; };
+}
+
+namespace details {
+
+void Sanitize(Config &config) {
+	// if no sink, add a default synchronous sink to STDERR, without locking
+	// with Text format.
+	if (config.sinks.empty()) {
+		WithProgramOutput(WithFormat(OutputFormat::TEXT))(config);
+	}
+
+	// if async sync are needed, set wanted threadpool size.
+	bool hasAsync =
+	    std::find_if(config.sinks.begin(), config.sinks.end(), [](auto &&sink) {
+		    return std::visit(
+		        [](auto &&s) -> bool { return s.async; },
+		        std::forward<decltype(sink)>(sink)
+		    );
+	    }) != config.sinks.end();
+
+	if (config.threadPoolSize == 0 && hasAsync == true) {
+		config.threadPoolSize = 1;
+	}
+}
+
+} // namespace details
 
 } // namespace slog
