@@ -16,22 +16,23 @@ void LoggerTest::TearDown() {
 
 using ::testing::_;
 using ::testing::AllOf;
-using ::testing::BeginEndDistanceIs;
 using ::testing::ElementsAreArray;
 using ::testing::Eq;
 using ::testing::Field;
-using ::testing::Gt;
 using ::testing::InSequence;
-using ::testing::Lt;
 using ::testing::Return;
 using ::testing::StrEq;
+using ::testing::VariantWith;
 
 inline constexpr auto HasLevel = [](const auto &level) {
-	return Field("level", &Record::level, Eq(level));
+	return VariantWith<const Record *>(Field("level", &Record::level, Eq(level))
+	);
 };
 
 inline constexpr auto HasMessage = [](const auto &message) {
-	return Field("message", &Record::message, StrEq(message));
+	return VariantWith<const Record *>(
+	    Field("message", &Record::message, StrEq(message))
+	);
 };
 
 template <typename... Attributes>
@@ -39,7 +40,9 @@ auto HasAttributes(Attributes &&...attributes) {
 	std::initializer_list<Attribute> attrs = {
 	    static_cast<Attribute>(attributes)...,
 	};
-	return Field("attributes", &Record::attributes, ElementsAreArray(attrs));
+	return VariantWith<const Record *>(
+	    Field("attributes", &Record::attributes, ElementsAreArray(attrs))
+	);
 }
 
 TEST_F(LoggerTest, LogHelperFunction) {
@@ -75,6 +78,8 @@ TEST_F(LoggerTest, LogHelperFunction) {
 		SCOPED_TRACE(data.message);
 		InSequence seq;
 		EXPECT_CALL(*sink, Enabled(data.level)).WillOnce(Return(true));
+		EXPECT_CALL(*sink, AllocateOnStack()).WillOnce(Return(true));
+
 		EXPECT_CALL(
 		    *sink,
 		    Log(AllOf(
@@ -105,6 +110,7 @@ TEST_F(LoggerTest, AttributeLogging) {
 	{
 		InSequence seq;
 		EXPECT_CALL(*sink, Enabled(Level::Info)).WillOnce(Return(true));
+		EXPECT_CALL(*sink, AllocateOnStack()).WillOnce(Return(true));
 		EXPECT_CALL(
 		    *sink,
 		    Log(AllOf(
@@ -125,6 +131,7 @@ TEST_F(LoggerTest, AttributePropagation) {
 	{
 		InSequence seq;
 		EXPECT_CALL(*sink, Enabled(Level::Warn)).WillOnce(Return(true));
+		EXPECT_CALL(*sink, AllocateOnStack()).WillOnce(Return(true));
 		EXPECT_CALL(
 		    *sink,
 		    Log(AllOf(

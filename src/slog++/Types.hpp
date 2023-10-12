@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utils.hpp"
+#include "utils/ContainerReference.hpp"
 #include <chrono>
 #include <memory>
 #include <string>
@@ -43,5 +43,7 @@ typedef std::shared_ptr<details::Group> GroupPtr;
 
 using Value = std::
     variant<bool, int64_t, double, std::string, DurationT, TimeT, GroupPtr>;
+
+using Buffer = std::string;
 
 }; // namespace slog

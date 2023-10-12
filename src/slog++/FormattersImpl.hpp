@@ -2,6 +2,7 @@
 
 #include "Attribute.hpp"
 #include "Formatters.hpp"
+#include "Level.hpp"
 #include "Record.hpp"
 #include <cctype>
 #include <charconv>
@@ -13,11 +14,11 @@ namespace slog {
 
 namespace details {
 
-void FormatTo(bool value, bool, Buffer &buffer) {
+inline void FormatTo(bool value, bool, Buffer &buffer) {
 	buffer += value ? "true" : "false";
 }
 
-void FormatTo(int64_t value, bool, Buffer &buffer) {
+inline void FormatTo(int64_t value, bool, Buffer &buffer) {
 	auto startSize = buffer.size();
 	while (true) {
 		buffer.resize(buffer.size() + 32); // may reallocate.
@@ -34,7 +35,7 @@ void FormatTo(int64_t value, bool, Buffer &buffer) {
 	}
 }
 
-void FormatTo(double value, bool, Buffer &buffer) {
+inline void FormatTo(double value, bool, Buffer &buffer) {
 	auto startSize = buffer.size();
 	while (true) {
 		buffer.resize(buffer.size() + 32); // may reallocate.
@@ -51,7 +52,7 @@ void FormatTo(double value, bool, Buffer &buffer) {
 	}
 }
 
-void FormatTo(const std::string &value, bool quote, Buffer &buffer) {
+inline void FormatTo(const std::string &value, bool quote, Buffer &buffer) {
 	quote = quote || std::find_if(value.begin(), value.end(), [](char c) {
 		                 return std::isspace(c) != 0;
 	                 }) != value.end();
@@ -74,7 +75,7 @@ void FormatTo(const std::string &value, bool quote, Buffer &buffer) {
 	}
 }
 
-void FormatTo(const DurationT &duration, bool quote, Buffer &buffer) {
+inline void FormatTo(const DurationT &duration, bool quote, Buffer &buffer) {
 	constexpr static int64_t us = 1000;
 	constexpr static int64_t ms = 1000 * us;
 	constexpr static int64_t s  = 1000 * ms;
@@ -226,7 +227,7 @@ void FormatToPrefix(Integer value, char prefix, Buffer &buffer) {
 	);
 }
 
-void FormatTo(const TimeT &time, bool quote, Buffer &buffer) {
+inline void FormatTo(const TimeT &time, bool quote, Buffer &buffer) {
 	using namespace std::chrono;
 	if (quote) {
 		buffer.push_back('\"');
@@ -264,8 +265,8 @@ void FormatTo(const TimeT &time, bool quote, Buffer &buffer) {
 	}
 }
 
-const std::string &levelName(Level level) {
-	static std::array<std::string, 22> names = {
+inline const std::string &levelName(Level level) {
+	static std::string names[NumLevels] = {
 	    "UNKNOWN",                                  //
 	    "TRACE",   "TRACE_1", "TRACE_2", "TRACE_3", //
 	    "DEBUG",   "DEBUG_1", "DEBUG_2", "DEBUG_3", //
@@ -275,14 +276,14 @@ const std::string &levelName(Level level) {
 	    "FATAL",
 	};
 	size_t idx(size_t(level) + 1);
-	if (idx >= 22) {
+	if (idx >= NumLevels) {
 		return names[0];
 	}
 	return names[idx];
 }
 
-const std::string &levelColor(Level level) {
-	static std::array<std::string, 22> names = {
+inline const std::string &levelColor(Level level) {
+	static std::string codes[NumLevels] = {
 	    "", // Level::Unknown  default
 	    "",
 	    "",
@@ -307,10 +308,10 @@ const std::string &levelColor(Level level) {
 	    "\033[37;41m", // Level::Fatal white on red
 	};
 	size_t idx(size_t(level) + 1);
-	if (idx >= 22) {
-		return names[0];
+	if (idx >= NumLevels) {
+		return codes[0];
 	}
-	return names[idx];
+	return codes[idx];
 }
 
 // helper constant for the visitor #3

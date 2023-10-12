@@ -87,7 +87,7 @@ inline Option<Config> WithThreadPoolSize(size_t size) {
 
 namespace details {
 
-void Sanitize(Config &config) {
+inline void Sanitize(Config &config) {
 	// if no sink, add a default synchronous sink to STDERR, without locking
 	// with Text format.
 	if (config.sinks.empty()) {

@@ -1,10 +1,9 @@
 #pragma once
 
+#include "Types.hpp"
 #include <string>
 
 namespace slog {
-
-using Buffer = std::string;
 
 class Record;
 

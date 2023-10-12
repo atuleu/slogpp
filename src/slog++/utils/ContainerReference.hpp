@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <initializer_list>
+#include <type_traits>
 
 namespace slog {
 

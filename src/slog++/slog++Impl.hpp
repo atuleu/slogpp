@@ -1,17 +1,19 @@
 #pragma once
 
-#include "ConfigImpl.hpp"
 #include "slog++.hpp"
+
 #include <stdexcept>
 
 namespace slog {
+class Sink;
 
 namespace details {
 
-std::shared_ptr<Sink> BuildSink(const SinkConfig &config) {
+inline std::shared_ptr<slog::Sink> BuildSink(const SinkConfig &config) {
 	throw std::logic_error("Building sink from config is not yet supported");
 	return nullptr;
 }
+
 } // namespace details
 
 template <typename... Options>

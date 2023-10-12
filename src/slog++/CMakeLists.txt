@@ -6,8 +6,11 @@ set(HDR_FILES
     Formatters.hpp #
     Types.hpp #
     Config.hpp #
-    Utils.hpp #
+    utils/ContainerReference.hpp #
+    utils/ObjectPool.hpp #
     slog++.hpp #
+    Sink.hpp #
+    Sinks.hpp #
 )
 
 set(SRC_FILES
@@ -16,8 +19,10 @@ set(SRC_FILES
     RecordImpl.hpp #
     FormattersImpl.hpp #
     ConfigImpl.hpp #
-    UtilsImpl.hpp #
+    utils/ContainerReferenceImpl.hpp #
+    utils/ObjectPoolImpl.hpp #
     slog++Impl.hpp #
+    SinksImpl.hpp #
 )
 
 set(TEST_SRC_FILES
@@ -25,6 +30,7 @@ set(TEST_SRC_FILES
     AttributeTest.cpp #
     FormattersTest.cpp #
     ConfigTest.cpp #
+    utils/ObjectPoolTest.cpp #
 )
 
 set(TEST_HDR_FILES
@@ -32,6 +38,8 @@ set(TEST_HDR_FILES
     AttributeTest.hpp #
     MockSink.hpp #
 )
+
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 set(SLOGPP_CPP_CONTENT "")
 foreach(src ${SRC_FILES})

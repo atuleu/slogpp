@@ -5,6 +5,8 @@
 #include "Sink.hpp"
 
 #include <algorithm>
+#include <memory>
+#include <utility>
 
 namespace slog {
 
@@ -39,15 +41,30 @@ Logger<N>::Log(Level level, Str &&msg, Attributes &&...attributes) const {
 		return;
 	}
 
-	// build the record.
-	details::Record<N + sizeof...(Attributes)> record(
+	constexpr size_t RecordSize = N + sizeof...(Attributes);
+
+	if (d_sink->AllocateOnStack() == true) {
+
+		// build the record.
+		details::Record<RecordSize> record(
+		    level,
+		    std::forward<Str>(msg),
+		    d_attributes,
+		    std::forward<Attributes>(attributes)...
+		);
+
+		d_sink->Log(&record);
+		return;
+	}
+
+	auto record = std::make_unique<details::Record<RecordSize>>(
 	    level,
 	    std::forward<Str>(msg),
 	    d_attributes,
 	    std::forward<Attributes>(attributes)...
 	);
 
-	d_sink->Log(record);
+	d_sink->Log(std::move(record));
 }
 
 template <>
@@ -60,14 +77,25 @@ Logger<0>::Log(Level level, Str &&msg, Attributes &&...attributes) const {
 		return;
 	}
 
-	// build the record.
-	details::Record<sizeof...(Attributes)> record(
+	constexpr size_t RecordSize = sizeof...(Attributes);
+
+	if (d_sink->AllocateOnStack() == true) {
+		details::Record<RecordSize> record(
+		    level,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...
+		);
+
+		d_sink->Log(&record);
+		return;
+	}
+
+	auto record = std::make_unique<const details::Record<RecordSize>>(
 	    level,
 	    std::forward<Str>(msg),
 	    std::forward<Attributes>(attributes)...
 	);
-
-	d_sink->Log(record);
+	d_sink->Log(std::move(record));
 }
 
 } // namespace slog

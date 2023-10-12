@@ -70,6 +70,10 @@ Option<Config> WithFileOutput(std::string filename, const Configs &...configs);
 
 Option<Config> WithThreadPoolSize(size_t size);
 
+namespace details {
+void Sanitize(Config &config);
+}
+
 } // namespace slog
 
 #include "ConfigImpl.hpp"
