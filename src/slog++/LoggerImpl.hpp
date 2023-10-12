@@ -57,14 +57,12 @@ Logger<N>::Log(Level level, Str &&msg, Attributes &&...attributes) const {
 		return;
 	}
 
-	auto record = std::make_unique<details::Record<RecordSize>>(
+	d_sink->Log(std::make_unique<const details::Record<RecordSize>>(
 	    level,
 	    std::forward<Str>(msg),
 	    d_attributes,
 	    std::forward<Attributes>(attributes)...
-	);
-
-	d_sink->Log(std::move(record));
+	));
 }
 
 template <>
@@ -90,12 +88,11 @@ Logger<0>::Log(Level level, Str &&msg, Attributes &&...attributes) const {
 		return;
 	}
 
-	auto record = std::make_unique<const details::Record<RecordSize>>(
+	d_sink->Log(std::make_unique<const details::Record<RecordSize>>(
 	    level,
 	    std::forward<Str>(msg),
 	    std::forward<Attributes>(attributes)...
-	);
-	d_sink->Log(std::move(record));
+	));
 }
 
 } // namespace slog

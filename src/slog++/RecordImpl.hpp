@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Record.hpp"
-#include "Types.hpp"
+
 #include <algorithm>
 #include <chrono>
 #include <iterator>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Attribute.hpp"
-#include <initializer_list>
+
 #include <type_traits>
 
 namespace slog {

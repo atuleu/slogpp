@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Attribute.hpp"
+#include "Level.hpp"
+
 #include <memory>
 #include <type_traits>
-
-#include "Level.hpp"
 
 namespace slog {
 class Sink;

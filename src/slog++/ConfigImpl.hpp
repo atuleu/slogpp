@@ -1,8 +1,12 @@
 #pragma once
 
 #include "Config.hpp"
+#include "Formatters.hpp"
 #include "Level.hpp"
+#include "Sinks.hpp"
 #include <type_traits>
+
+#include <unistd.h>
 
 namespace slog {
 
@@ -108,6 +112,36 @@ inline void Sanitize(Config &config) {
 	}
 }
 
+inline bool IsATTY(std::FILE *file) {
+	return isatty(fileno(file));
+};
+
 } // namespace details
+
+inline Formatter FileSinkConfig::Formatter() const noexcept {
+	switch (format) {
+	case OutputFormat::JSON:
+		return &RecordToJSON;
+	case OutputFormat::TEXT:
+		return &RecordToRawText;
+	}
+	return &RecordToRawText;
+}
+
+inline Formatter ProgramOutputSinkConfig::Formatter() const noexcept {
+	if (format == OutputFormat::JSON) {
+		return &RecordToJSON;
+	}
+
+	if (disabledColor == true) {
+		return &RecordToRawText;
+	}
+
+	if (forceColor == true ||
+	    details::IsATTY(this->stdout == true ? ::stdout : stderr)) {
+		return &RecordToANSIText;
+	}
+	return &RecordToRawText;
+}
 
 } // namespace slog

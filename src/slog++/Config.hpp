@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Level.hpp"
+#include "Types.hpp"
 
 namespace slog {
 
@@ -30,10 +31,14 @@ struct ProgramOutputSinkConfig : BaseSinkConfig {
 	bool stdout        = false;
 	bool disabledColor = false;
 	bool forceColor    = false;
+
+	slog::Formatter Formatter() const noexcept;
 };
 
 struct FileSinkConfig : BaseSinkConfig {
 	std::string filepath;
+
+	slog::Formatter Formatter() const noexcept;
 };
 
 using SinkConfig = std::variant<ProgramOutputSinkConfig, FileSinkConfig>;

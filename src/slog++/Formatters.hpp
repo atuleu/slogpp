@@ -5,10 +5,6 @@
 
 namespace slog {
 
-class Record;
-
-using Formatter = void (*)(const Record &record, Buffer &);
-
 void RecordToJSON(const Record &record, Buffer &);
 
 void RecordToRawText(const Record &record, Buffer &);

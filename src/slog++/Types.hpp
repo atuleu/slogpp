@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils/ContainerReference.hpp"
+
 #include <chrono>
 #include <memory>
 #include <string>
@@ -45,5 +46,9 @@ using Value = std::
     variant<bool, int64_t, double, std::string, DurationT, TimeT, GroupPtr>;
 
 using Buffer = std::string;
+
+class Record;
+
+using Formatter = void (*)(const Record &record, Buffer &);
 
 }; // namespace slog
