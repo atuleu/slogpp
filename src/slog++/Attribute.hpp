@@ -45,19 +45,19 @@ struct Attribute {
 
 namespace details {
 
-template <size_t N> class Group : public GroupT {
+template <size_t N> class GroupData : public Group {
 public:
 	template <typename... Attributes>
-	inline Group(Attributes &&...attributes)
+	inline GroupData(Attributes &&...attributes)
 	    : d_data{std::forward<Attributes>(attributes)...} {
-		this->attributes = ContainerReference<Attribute>(d_data);
+		this->attributes = utils::ContainerReference<Attribute>(d_data);
 	};
 
 private:
 	std::array<Attribute, N> d_data;
 };
 
-template <> class Group<0> : public GroupT {};
+template <> class GroupData<0> : public Group {};
 
 } // namespace details
 

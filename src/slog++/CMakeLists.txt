@@ -6,6 +6,7 @@ set(HDR_FILES
     Formatters.hpp #
     Types.hpp #
     Config.hpp #
+    Utils.hpp #
 )
 
 set(SRC_FILES
@@ -14,6 +15,7 @@ set(SRC_FILES
     RecordImpl.hpp #
     FormattersImpl.hpp #
     ConfigImpl.hpp #
+    UtilsImpl.hpp #
 )
 
 set(TEST_SRC_FILES

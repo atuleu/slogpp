@@ -50,7 +50,7 @@ inline Record<N>::Record(
               copiedAttributes, std::forward<Attributes>(attributes)...
           ),
       } {
-	this->attributes = ContainerReference<Attribute>{d_data};
+	this->attributes = utils::ContainerReference<Attribute>{d_data};
 }
 
 template <size_t N>
@@ -60,7 +60,7 @@ inline Record<N>::Record(
 ) noexcept
     : slog::Record{level, std::forward<Str>(message)}
     , d_data{std::forward<Attributes>(attributes)...} {
-	this->attributes = ContainerReference<Attribute>(d_data);
+	this->attributes = utils::ContainerReference<Attribute>(d_data);
 }
 
 template <size_t N>
@@ -74,7 +74,7 @@ inline Record<N>::Record(
     : slog::
           Record{std::forward<Timestamp>(timestamp), level, std::forward<Str>(message)}
     , d_data{std::forward<Attribute>(attributes)...} {
-	this->attributes = ContainerReference<Attribute>(d_data);
+	this->attributes = utils::ContainerReference<Attribute>(d_data);
 }
 
 template <typename Str>

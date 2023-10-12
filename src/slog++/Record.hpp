@@ -8,10 +8,10 @@ namespace slog {
 
 class Record {
 public:
-	TimeT                         timestamp;
-	Level                         level;
-	std::string                   message;
-	ContainerReference<Attribute> attributes;
+	TimeT                                timestamp;
+	Level                                level;
+	std::string                          message;
+	utils::ContainerReference<Attribute> attributes;
 	virtual ~Record() = default;
 
 	// non-copyable non-movable;
