@@ -6,6 +6,19 @@
 #include <memory>
 #include <type_traits>
 
+namespace std {
+template <typename T> class array<T, 0> {
+public:
+	const T *begin() const noexcept {
+		return nullptr;
+	}
+
+	const T *end() const noexcept {
+		return nullptr;
+	}
+};
+} // namespace std
+
 namespace slog {
 class Sink;
 

@@ -1,17 +1,40 @@
 #pragma once
 
+#include "Config.hpp"
+#include "FileSink.hpp"
 #include "slog++.hpp"
 
 #include <stdexcept>
 
 namespace slog {
-class Sink;
 
 namespace details {
 
 inline std::shared_ptr<slog::Sink> BuildSink(const SinkConfig &config) {
-	throw std::logic_error("Building sink from config is not yet supported");
-	return nullptr;
+	using Ptr = std::shared_ptr<slog::Sink>;
+	return std::visit(
+	    [](auto &&config) -> std::shared_ptr<slog::Sink> {
+		    using T = std::decay_t<decltype(config)>;
+		    if constexpr (std::is_same_v<T, ProgramOutputSinkConfig> || std::is_same_v<T, FileSinkConfig>) {
+			    if (config.async) {
+				    if (config.withLocking) {
+					    return Ptr(new FileSink<AsyncMtSafe>(config));
+				    } else {
+					    return Ptr(new FileSink<Async>(config));
+				    }
+			    } else {
+				    if (config.withLocking) {
+					    return Ptr(new FileSink<MTSafe>(config));
+				    } else {
+					    return Ptr(new FileSink<Unsafe>(config));
+				    }
+			    }
+		    } else {
+			    static_assert(always_false_v<T>, "non-exhaustive visitor");
+		    }
+	    },
+	    config
+	);
 }
 
 } // namespace details

@@ -8,9 +8,9 @@ set(HDR_FILES
     Config.hpp #
     utils/ContainerReference.hpp #
     utils/ObjectPool.hpp #
+    utils/ThreadPool.hpp #
     slog++.hpp #
     Sink.hpp #
-    Sinks.hpp #
 )
 
 set(SRC_FILES
@@ -21,8 +21,10 @@ set(SRC_FILES
     ConfigImpl.hpp #
     utils/ContainerReferenceImpl.hpp #
     utils/ObjectPoolImpl.hpp #
+    utils/ThreadPoolImpl.hpp #
     slog++Impl.hpp #
-    SinksImpl.hpp #
+    SinkDetails.hpp #
+    FileSink.hpp #
 )
 
 set(TEST_SRC_FILES

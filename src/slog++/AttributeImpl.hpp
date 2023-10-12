@@ -60,6 +60,10 @@ inline Attribute Time(Str &&key, Timepoint &&timepoint) noexcept {
 
 template <typename Str, typename... Attributes>
 inline Attribute Group(Str &&key, Attributes &&...attributes) noexcept {
+	static_assert(
+	    sizeof...(Attributes) >= 1,
+	    "A Group should always have at least one attribute"
+	);
 	using Array = details::GroupData<sizeof...(Attributes)>;
 	return Attribute{
 	    std::forward<Str>(key),

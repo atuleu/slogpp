@@ -3,7 +3,6 @@
 #include "Config.hpp"
 #include "Formatters.hpp"
 #include "Level.hpp"
-#include "Sinks.hpp"
 #include <type_traits>
 
 #include <unistd.h>
