@@ -9,6 +9,8 @@ git_version(PROJECT_PREFIX slogpp_ #
 			FALLBACK_VERSION 0.0.0
 )
 
+message(STATUS "Building slogpp ${PROJECT_VERSION}")
+
 project(
 	slogpp #
 	LANGUAGES CXX #
@@ -27,7 +29,8 @@ FetchContent_Declare(
 
 set(gtest_force_shared_crt
 	On
-	CACHE BOOL "" FORCE
+	CACHE BOOL "
+		" FORCE
 )
 FetchContent_MakeAvailable(googletest)
 
