@@ -1,6 +1,10 @@
 #include "Ansi.hpp"
 
 #include <cmath>
+#include <iostream>
+#include <stdio.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 namespace ansi {
 const static std::string esc = "\033[";
@@ -72,7 +76,11 @@ std::string InLineDelete(EraseMode mode) noexcept {
 }
 
 int GetTTYWidth() {
-	return 80;
+	struct winsize w;
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != 0) {
+		return -1;
+	}
+	return w.ws_col;
 }
 
 std::string RenderProgressBar(double ratio, int width) noexcept {

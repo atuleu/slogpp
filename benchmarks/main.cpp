@@ -3,14 +3,12 @@
 #include <chrono>
 #include <thread>
 
-void f(const BenchmarkData &) {
-	std::this_thread::sleep_for(std::chrono::milliseconds(20));
-}
+void Noop(const BenchmarkData &) {}
 
 int main() {
 	Benchmarker<BenchmarkData, 100> benchmarker;
 
-	benchmarker.Benchmark("sleeper", f);
-
+	auto noop = benchmarker.Benchmark("Noop", Noop);
+	std::cout << noop << std::endl;
 	return 0;
 }

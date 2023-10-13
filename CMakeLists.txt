@@ -43,7 +43,6 @@ include(GoogleTest)
 include_directories(include)
 add_subdirectory(include/slog++)
 
-
 option(SLOG_BENCHMARKS Off)
 
 if(SLOG_BENCHMARKS)
