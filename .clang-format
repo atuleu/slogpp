@@ -7,9 +7,18 @@ TabWidth: 4
 ---
 Language: Cpp
 AllowShortFunctionsOnASingleLine: Empty
+SeparateDefinitionBlocks: Always
 AccessModifierOffset: -4
+AlignConsecutiveAssignments: AcrossComments
+AllowAllArgumentsOnNextLine: false
+BinPackArguments: false
+BinPackParameters: false
+BreakConstructorInitializers: BeforeComma
+BreakStringLiterals: true
+PackConstructorInitializers: Never
+AlignAfterOpenBracket: BlockIndent
+Cpp11BracedListStyle: true
+AlwaysBreakBeforeMultilineStrings: true
 AlignConsecutiveDeclarations: AcrossComments
 AlignConsecutiveMacros: AcrossComments
-AlignConsecutiveAssignments: AcrossComments
-
 ---
