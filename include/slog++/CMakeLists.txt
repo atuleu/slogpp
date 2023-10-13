@@ -1,3 +1,8 @@
+configure_file(Version.hpp.in Version.hpp @ONLY)
+set(SOURCE Version.hpp.in APPEND PROPERTY OBJECT_DEPENDS
+		   ${PROJECT_BINARY_DIR}/.version
+)
+
 set(HDR_FILES
 	Logger.hpp #
 	Attribute.hpp #
@@ -14,6 +19,7 @@ set(HDR_FILES
 )
 
 set(SRC_FILES
+	${CMAKE_CURRENT_BINARY_DIR}/Version.hpp
 	LoggerImpl.hpp #
 	AttributeImpl.hpp #
 	RecordImpl.hpp #
@@ -60,3 +66,4 @@ add_dependencies(check slog++-tests)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_library(slog++ STATIC ${HDR_FILES} ${SRC_FILES} slog.cpp)
+add_dependencies(slog++ slogpp_Version)

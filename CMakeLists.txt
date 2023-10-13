@@ -9,13 +9,13 @@ git_version(PROJECT_PREFIX slogpp_ #
 			FALLBACK_VERSION 0.0.0
 )
 
-message(STATUS "Building slogpp ${PROJECT_VERSION}")
-
 project(
 	slogpp #
 	LANGUAGES CXX #
 	VERSION ${PROJECT_VERSION} #
 )
+
+message(STATUS "Building slogpp ${slogpp_FULL_VERSION}")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
@@ -29,8 +29,7 @@ FetchContent_Declare(
 
 set(gtest_force_shared_crt
 	On
-	CACHE BOOL "
-		" FORCE
+	CACHE BOOL "" FORCE
 )
 FetchContent_MakeAvailable(googletest)
 

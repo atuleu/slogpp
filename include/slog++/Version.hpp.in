@@ -1,0 +1,3 @@
+#pragma once
+
+#define SLOG_VERSION "@slogpp_FULL_VERSION@"
