@@ -1,64 +1,91 @@
 #pragma once
 
+#include "Attribute.hpp"
+#include "Level.hpp"
+
 #include <memory>
-#include <utility>
+#include <type_traits>
+
+namespace std {
+template <typename T> class array<T, 0> {
+public:
+	const T *begin() const noexcept {
+		return nullptr;
+	}
+
+	const T *end() const noexcept {
+		return nullptr;
+	}
+};
+} // namespace std
 
 namespace slog {
-
 class Sink;
 
-enum Level {
-	Trace   = -8,
-	Debug   = -4,
-	Info    = 0,
-	Warning = 4,
-	Error   = 8,
-	Fatal   = 12,
-};
-
-/**
- * A logger is used to produce structured log entries
- */
-class Logger {
+template <size_t N> class Logger {
 public:
-	Logger(const std::shared_ptr<Sink> &sink);
+	template <size_t M> friend class Logger;
 
-	template <typename... Fields> const Logger &With(Fields &&...fields) const;
+	Logger(std::shared_ptr<Sink> sink) noexcept;
 
-	template <typename Error> const Logger &WithError(const Error &error) const;
-
-	template <typename Str, typename... Fields>
-	void Log(Level lvl, const Str &msg, Fields &&...fields) const;
-
-	template <typename Str, typename... Fields>
-	void Trace(const Str &msg, Fields &&...fields) const {
-		Log(Level::Trace, msg, std::forward(fields));
+	void SetSink(std::shared_ptr<Sink> sink) {
+		d_sink = std::move(sink);
 	}
 
-	template <typename Str, typename... Fields>
-	void Debug(const Str &msg, Fields &&...fields, Fields &&...fields) const {
-		Log(Level::Debug, msg, std::forward(fields));
-	}
+	template <typename... Attributes>
+	Logger<N + sizeof...(Attributes)> With(Attributes &&...attributes
+	) const noexcept;
 
-	template <typename Str, typename... Fields>
-	void Info(const Str &msg, Fields &&...fields, Fields &&...fields) const {
-		Log(Level::Info, msg, std::forward(fields));
+	template <typename Str, typename... Attributes>
+	void Log(Level level, Str &&msg, Attributes &&...attributes) const;
+
+	template <typename Str, typename... Attributes>
+	inline void Trace(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Trace,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
 	};
 
-	template <typename Str, typename... Fields>
-	void Warn(const Str &msg, Fields &&...fields, Fields &&...fields) const {
-		Log(Level::Warning, msg, std::forward(fields));
-	}
+	template <typename Str, typename... Attributes>
+	inline void Debug(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Debug,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
+	};
 
-	template <typename Str, typename... Fields>
-	void Error(const Str &msg, Fields &&...fields, Fields &&...fields) const {
-		Log(Level::Error, msg, std::forward(fields));
-	}
+	template <typename Str, typename... Attributes>
+	inline void Info(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Info,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
+	};
 
-	template <typename Str, typename... Fields>
-	void Fatal(const Str &msg, Fields &&...fields, Fields &&...fields) const {
-		Log(Level::Fatal, msg, std::forward(fields));
-	}
+	template <typename Str, typename... Attributes>
+	inline void Warn(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Warn,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
+	};
+
+	template <typename Str, typename... Attributes>
+	inline void Error(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Error,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
+	};
+
+	template <typename Str, typename... Attributes>
+	inline void Fatal(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Fatal,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
+	};
+
+private:
+	std::shared_ptr<Sink>    d_sink;
+	std::array<Attribute, N> d_attributes;
 };
 
 } // namespace slog
+
+#include "LoggerImpl.hpp"
