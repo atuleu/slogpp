@@ -1,4 +1,5 @@
 configure_file(Version.hpp.in Version.hpp @ONLY)
+
 set(SOURCE Version.hpp.in APPEND PROPERTY OBJECT_DEPENDS
 		   ${PROJECT_BINARY_DIR}/.version
 )
