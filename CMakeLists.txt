@@ -42,3 +42,10 @@ add_custom_target(check ALL COMMAND ${CMAKE_CTEST_COMMAND} ARGS
 include(GoogleTest)
 include_directories(include)
 add_subdirectory(include/slog++)
+
+
+option(SLOG_BENCHMARKS Off)
+
+if(SLOG_BENCHMARKS)
+	add_subdirectory(benchmarks)
+endif(SLOG_BENCHMARKS)
