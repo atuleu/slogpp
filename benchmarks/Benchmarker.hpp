@@ -73,20 +73,22 @@ struct Benchmarker {
 
 		State state{NameEllipsis(name, columns)};
 
-		std::vector<Duration> results{};
-
 		while (ShouldStop(state) == false) {
 			auto start = Timepoint::clock::now();
 			std::forward<F>(fn)(data[state.iterations % N]);
 			auto end = Timepoint::clock::now();
 
-			results.push_back(end - start);
-			IncrementState(state, results.back());
+			state.Increment(end - start);
+
+			if (state.WarmingUp()) {
+				SetUpHotState(state);
+			}
+
 			DisplayState(state, end, false);
 		}
 
 		DisplayState(state, Timepoint::clock::now(), true);
-		return results;
+		return std::move(state.results);
 	}
 
 	inline Benchmarker()
@@ -102,6 +104,8 @@ private:
 		size_t      stopAtIteration = 0;
 		Duration    totalDuration   = std::chrono::nanoseconds{0};
 
+		std::vector<Duration> results;
+
 		inline State(std::string name) noexcept
 		    : name{name}
 		    , start{Timepoint::clock::now()} {}
@@ -109,12 +113,15 @@ private:
 		inline bool WarmingUp() const noexcept {
 			return stopAtIteration == 0;
 		}
+
+		inline void Increment(Duration &&last) noexcept {
+			iterations++;
+			totalDuration += last;
+			results.push_back(last);
+		}
 	};
 
-	inline void
-	IncrementState(State &state, const Duration &last) const noexcept {
-		state.totalDuration += last;
-		state.iterations += 1;
+	inline void SetUpHotState(State &state) const noexcept {
 
 		if (!state.WarmingUp()) {
 			// warmed up
@@ -126,9 +133,15 @@ private:
 			return;
 		}
 
+		// Compute median duration during warmup
+		auto medianWarmup = [](std::vector<Duration> durations) {
+			std::sort(durations.begin(), durations.end());
+			return durations[durations.size() / 2];
+		}(state.results);
+
 		// estimate to end at target
 		state.stopAtIteration =
-		    std::round(double(target.count()) / state.totalDuration.count());
+		    std::round(double(target.count()) / medianWarmup.count());
 
 		// makes iterations into bounds
 		state.stopAtIteration =
