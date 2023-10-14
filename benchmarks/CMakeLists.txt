@@ -12,7 +12,11 @@ set(SRC_FILES
 	main.cpp #
 )
 
+find_package(glog REQUIRED)
+
 add_executable(slog++-benchmarks ${SRC_FILES} ${HDR_FILES})
+
+target_link_libraries(slog++-benchmarks glog::glog)
 
 add_custom_target(benchmarks
 				  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/slog++-benchmarks

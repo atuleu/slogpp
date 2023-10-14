@@ -5,6 +5,7 @@ BenchmarkResult::BenchmarkResult(std::vector<Duration> &&data)
     : durations{std::move(data)}
     , minimum{Duration::max()}
     , maximum{Duration::min()}
+    , total{0}
     , ratio{1.0}
     , units{"ns"} {
 
@@ -21,9 +22,7 @@ BenchmarkResult::BenchmarkResult(std::vector<Duration> &&data)
 	average      = total / durations.size();
 }
 
-std::tuple<double, std::string> BenchmarkResult::Cast(const Duration &d
-) const noexcept {
-
+std::tuple<double, std::string> Humanize(const Duration &d) noexcept {
 	double res = d.count();
 	if (res > 1e9) {
 		return {res / 1e9, "s"};
@@ -38,7 +37,7 @@ std::tuple<double, std::string> BenchmarkResult::Cast(const Duration &d
 std::ostream &operator<<(std::ostream &out, BenchmarkResult &result) {
 	auto format =
 	    [&result](std::ostream &os, const Duration &d) -> std::ostream & {
-		auto [v, units] = result.Cast(d);
+		auto [v, units] = Humanize(d);
 		return os << v << units;
 	};
 

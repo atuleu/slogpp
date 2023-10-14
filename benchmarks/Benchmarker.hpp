@@ -17,7 +17,6 @@
 
 struct BenchmarkResult {
 	BenchmarkResult(std::vector<Duration> &&durations);
-	std::tuple<double, std::string> Cast(const Duration &d) const noexcept;
 
 	std::vector<Duration> durations;
 	Duration              total;
@@ -28,6 +27,8 @@ struct BenchmarkResult {
 	std::string           units;
 	double                ratio;
 };
+
+std::tuple<double, std::string> Humanize(const Duration &d) noexcept;
 
 std::ostream &operator<<(std::ostream &out, BenchmarkResult &result);
 
