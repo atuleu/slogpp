@@ -25,8 +25,8 @@ public:
 		d_file = FilePtr(config.stdout ? stdout : stderr, [](FILE *f) {});
 	}
 
-	void Log(utils::ObjectPool<Buffer>::Ptr &&buffer) {
-		std::fwrite(buffer->data(), sizeof(char), buffer->size(), d_file.get());
+	void Log(const Buffer &buffer) {
+		std::fwrite(buffer.data(), sizeof(char), buffer.size(), d_file.get());
 		std::fputc('\n', d_file.get());
 	}
 

@@ -50,13 +50,13 @@ public:
 	}
 
 	void LogImpl(slog::Sink::RecordVariant &&record) {
-		auto buffer = bufferPool.Get();
-		buffer->resize(0);
+		Buffer buffer;
+		buffer.reserve(256);
 		std::visit(
-		    [this, &buffer](auto &&arg) { d_formatter(*arg, *buffer); },
+		    [this, &buffer](auto &&arg) { d_formatter(*arg, buffer); },
 		    record
 		);
-		static_cast<T *>(this)->Log(std::move(buffer));
+		static_cast<T *>(this)->Log(buffer);
 	}
 
 	Sink(const Sink &) = default;
