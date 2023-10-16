@@ -1,3 +1,8 @@
+if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+	# externally linked, simply include and return
+	include_directories(include)
+endif(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+
 cmake_minimum_required(VERSION 3.16)
 cmake_policy(SET CMP0048 NEW)
 
