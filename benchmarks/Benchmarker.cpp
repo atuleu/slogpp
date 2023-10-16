@@ -34,7 +34,7 @@ std::tuple<double, std::string> Humanize(const Duration &d) noexcept {
 	return {res, "ns"};
 }
 
-std::ostream &operator<<(std::ostream &out, BenchmarkResult &result) {
+std::ostream &operator<<(std::ostream &out, const BenchmarkResult &result) {
 	auto format =
 	    [&result](std::ostream &os, const Duration &d) -> std::ostream & {
 		auto [v, units] = Humanize(d);

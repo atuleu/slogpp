@@ -30,7 +30,7 @@ struct BenchmarkResult {
 
 std::tuple<double, std::string> Humanize(const Duration &d) noexcept;
 
-std::ostream &operator<<(std::ostream &out, BenchmarkResult &result);
+std::ostream &operator<<(std::ostream &out, const BenchmarkResult &result);
 
 inline std::string NameEllipsis(const std::string &str, size_t columns) {
 	size_t nameSize = std::max(0.0, std::round(columns * 0.25));

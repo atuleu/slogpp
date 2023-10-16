@@ -84,6 +84,33 @@ struct SlogLogger {
 	    : logger{slog::BuildSink(std::forward<Options>(options)...)} {}
 };
 
+struct SlogDerivedLogger {
+
+	slog::Logger<0> logger;
+
+	void operator()(const BenchmarkData &data) {
+		using namespace slog;
+		using slog::Duration;
+		auto logger = this->logger.With(Group(
+		    "request",
+		    String("url", data.request.url),
+		    Int("status", data.request.status)
+		));
+
+		logger.Info(
+		    "new data",
+		    Int("code", data.code),
+		    Float("value", data.value),
+		    Duration("duration", data.duration),
+		    Time("time", data.time)
+		);
+	}
+
+	template <typename... Options>
+	SlogDerivedLogger(Options &&...options)
+	    : logger{slog::BuildSink(std::forward<Options>(options)...)} {}
+};
+
 struct GLogLogger {
 	GLogLogger(const char *argv0) {
 		FLAGS_logtostderr = false;
@@ -111,36 +138,44 @@ int main(int argc, char **argv) {
 
 	Benchmarker<BenchmarkData, 103> benchmarker;
 
-	auto noop = benchmarker.Benchmark("Noop", NoopFunctor());
-	std::cout << noop << std::endl;
+	std::cout << benchmarker.Benchmark("Noop", NoopFunctor()) << std::endl;
 
-	auto iostream =
-	    benchmarker.Benchmark("Iostream - text", FstreamLogger("/dev/null"));
-	std::cout << iostream << std::endl;
+	std::cout
+	    << benchmarker.Benchmark("Iostream - text", FstreamLogger("/dev/null"))
+	    << std::endl;
 
-	auto slogText = benchmarker.Benchmark(
-	    "slog++ - text",
-	    SlogLogger(slog::WithFileOutput(
-	        "/dev/null",
-	        slog::WithFormat(slog::OutputFormat::TEXT),
-	        slog::FromLevel(slog::Level::Info)
-	    ))
-	);
-	std::cout << slogText << std::endl;
+	std::cout << benchmarker.Benchmark(
+	                 "slog++ - text",
+	                 SlogLogger(slog::WithFileOutput(
+	                     "/dev/null",
+	                     slog::WithFormat(slog::OutputFormat::TEXT),
+	                     slog::FromLevel(slog::Level::Info)
+	                 ))
+	             )
+	          << std::endl;
 
-	auto slogJson = benchmarker.Benchmark(
-	    "slog++ - JSON",
-	    SlogLogger(slog::WithFileOutput(
-	        "/dev/null",
-	        slog::WithFormat(slog::OutputFormat::JSON),
-	        slog::FromLevel(slog::Level::Info)
-	    ))
-	);
-	std::cout << slogJson << std::endl;
+	std::cout << benchmarker.Benchmark(
+	                 "slog++ - JSON",
+	                 SlogLogger(slog::WithFileOutput(
+	                     "/dev/null",
+	                     slog::WithFormat(slog::OutputFormat::JSON),
+	                     slog::FromLevel(slog::Level::Info)
+	                 ))
+	             )
+	          << std::endl;
 
-	auto glogText =
-	    benchmarker.Benchmark("Google GLog - Text", GLogLogger(argv[0]));
-	std::cout << glogText << std::endl;
+	std::cout << benchmarker.Benchmark(
+	                 "slog++ - JSON - Derived",
+	                 SlogDerivedLogger(slog::WithFileOutput(
+	                     "/dev/null",
+	                     slog::FromLevel(slog::Level::Info)
+	                 ))
+	             )
+	          << std::endl;
+
+	std::cout
+	    << benchmarker.Benchmark("Google GLog - Text", GLogLogger(argv[0]))
+	    << std::endl;
 
 	return 0;
 }
