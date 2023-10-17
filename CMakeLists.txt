@@ -1,6 +1,10 @@
 if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-	# externally linked, simply include and return
-	include_directories(include)
+	# externally linked via FetchContent. Simply create slog++::slog++ interface
+	# target
+	add_library(slog++::slog++ INTERFACE IMPORTED GLOBAL)
+	target_include_directories(slog++::slog++ INTERFACE include)
+
+	return()
 endif(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 
 cmake_minimum_required(VERSION 3.16)
