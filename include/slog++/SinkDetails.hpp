@@ -29,16 +29,12 @@ template <typename T, ConcurencyMode CM> class Sink : public slog::Sink {
 public:
 	using LevelArray = std::array<bool, NumLevels>;
 
-	inline Sink(const LevelArray &array, Formatter formatter)
-	    : d_levels{array}
+	inline Sink(const LevelArray &levels, Formatter formatter)
+	    : d_levels{levels}
 	    , d_formatter{formatter} {}
 
 	inline bool AllocateOnStack() const noexcept override {
 		return (CM & Async) != 0;
-}
-
-    inline void Log(slog::Sink::RecordVariant &&record) override {
-		static_cast<T *>(this)->LogImpl(std::move(record));
 	}
 
 	inline bool Enabled(Level lvl) const noexcept override {
@@ -47,6 +43,25 @@ public:
 			index = 0;
 		}
 		return d_levels[index];
+	}
+
+	inline void From(Level lvl) noexcept override {
+		auto index = size_t(lvl) + 1;
+		for (size_t i = 1; i < NumLevels; i++) {
+			d_levels[i] = i >= index;
+		}
+	}
+
+	inline void Set(Level lvl, bool enabled) noexcept override {
+		auto index = size_t(lvl) + 1;
+		if (index >= NumLevels) {
+			return;
+		}
+		d_levels[index] = enabled;
+	}
+
+	inline void Log(slog::Sink::RecordVariant &&record) override {
+		static_cast<T *>(this)->LogImpl(std::move(record));
 	}
 
 	void LogImpl(slog::Sink::RecordVariant &&record) {
@@ -66,8 +81,8 @@ public:
 	Sink &operator=(Sink &&)      = default;
 
 private:
-	std::array<bool, NumLevels> d_levels;
-	Formatter                   d_formatter;
+	LevelArray d_levels;
+	Formatter  d_formatter;
 };
 
 template <typename T> class Sink<T, MTSafe> : public Sink<T, Unsafe> {

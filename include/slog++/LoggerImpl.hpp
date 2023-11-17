@@ -11,9 +11,18 @@
 
 namespace slog {
 
+template <size_t N> inline void Logger<N>::From(Level lvl) const noexcept {
+	d_sink->From(lvl);
+}
+
+template <size_t N>
+inline void Logger<N>::Set(Level lvl, bool enabled) const noexcept {
+	d_sink->Set(lvl, enabled);
+}
+
 template <size_t N>
 inline Logger<N>::Logger(std::shared_ptr<Sink> sink) noexcept
-    : d_sink(std::move(sink)){};
+    : d_sink{std::move(sink)} {};
 
 template <size_t N>
 template <typename... Attributes>

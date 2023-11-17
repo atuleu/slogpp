@@ -10,6 +10,8 @@ class MockSink : public Sink {
 public:
 	MOCK_METHOD(bool, AllocateOnStack, (), (const, noexcept, override));
 	MOCK_METHOD(bool, Enabled, (Level lvl), (const, noexcept, override));
+	MOCK_METHOD(void, From, (Level lvl), (noexcept, override));
+	MOCK_METHOD(void, Set, (Level lvl, bool enabled), (noexcept, override));
 	MOCK_METHOD(void, Log, (Sink::RecordVariant &&), (override));
 };
 

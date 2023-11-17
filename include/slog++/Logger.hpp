@@ -28,9 +28,13 @@ public:
 
 	Logger(std::shared_ptr<Sink> sink) noexcept;
 
-	void SetSink(std::shared_ptr<Sink> sink) {
+	inline void SetSink(std::shared_ptr<Sink> sink) {
 		d_sink = std::move(sink);
 	}
+
+	void From(Level lvl) const noexcept;
+
+	void Set(Level lvl, bool enabled) const noexcept;
 
 	template <typename... Attributes>
 	Logger<N + sizeof...(Attributes)> With(Attributes &&...attributes

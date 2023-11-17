@@ -20,6 +20,10 @@ public:
 
 	virtual bool Enabled(Level lvl) const noexcept = 0;
 
+	virtual void From(Level lvl) noexcept = 0;
+
+	virtual void Set(Level lvl, bool enabled) noexcept = 0;
+
 	virtual void Log(RecordVariant &&record) = 0;
 };
 

@@ -8,7 +8,7 @@
 
 namespace slog {
 
-inline Logger<0> &defaultLogger() {
+inline Logger<0> &DefaultLogger() {
 	static Logger<0> instance{BuildSink()};
 	return instance;
 }

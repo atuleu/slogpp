@@ -8,20 +8,16 @@ namespace slog {
 template <typename... Options>
 std::shared_ptr<Sink> BuildSink(Options &&...options);
 
-Logger<0> &defaultLogger();
-
-inline void SetSink(const std::shared_ptr<Sink> &sink) {
-	defaultLogger().SetSink(sink);
-}
+Logger<0> &DefaultLogger();
 
 template <typename... Attributes>
 inline Logger<sizeof...(Attributes)> With(Attributes &&...attributes) {
-	return defaultLogger().With(std::forward<Attributes>(attributes)...);
+	return DefaultLogger().With(std::forward<Attributes>(attributes)...);
 }
 
 template <typename Str, typename... Attributes>
 inline void Log(Level level, Str &&message, Attributes &&...attributes) {
-	defaultLogger().Log(
+	DefaultLogger().Log(
 	    level,
 	    std::forward<Str>(message),
 	    std::forward<Attributes>(attributes)...
@@ -30,7 +26,7 @@ inline void Log(Level level, Str &&message, Attributes &&...attributes) {
 
 template <typename Str, typename... Attributes>
 inline void Trace(Str &&message, Attributes &&...attributes) {
-	defaultLogger().Trace(
+	DefaultLogger().Trace(
 	    std::forward<Str>(message),
 	    std::forward<Attributes>(attributes)...
 	);
@@ -38,7 +34,7 @@ inline void Trace(Str &&message, Attributes &&...attributes) {
 
 template <typename Str, typename... Attributes>
 inline void Debug(Str &&message, Attributes &&...attributes) {
-	defaultLogger().Debug(
+	DefaultLogger().Debug(
 	    std::forward<Str>(message),
 	    std::forward<Attributes>(attributes)...
 	);
@@ -46,7 +42,7 @@ inline void Debug(Str &&message, Attributes &&...attributes) {
 
 template <typename Str, typename... Attributes>
 inline void Info(Str &&message, Attributes &&...attributes) {
-	defaultLogger().Info(
+	DefaultLogger().Info(
 	    std::forward<Str>(message),
 	    std::forward<Attributes>(attributes)...
 	);
@@ -54,7 +50,7 @@ inline void Info(Str &&message, Attributes &&...attributes) {
 
 template <typename Str, typename... Attributes>
 inline void Warn(Str &&message, Attributes &&...attributes) {
-	defaultLogger().Warn(
+	DefaultLogger().Warn(
 	    std::forward<Str>(message),
 	    std::forward<Attributes>(attributes)...
 	);
@@ -62,7 +58,7 @@ inline void Warn(Str &&message, Attributes &&...attributes) {
 
 template <typename Str, typename... Attributes>
 inline void Error(Str &&message, Attributes &&...attributes) {
-	defaultLogger().Error(
+	DefaultLogger().Error(
 	    std::forward<Str>(message),
 	    std::forward<Attributes>(attributes)...
 	);
@@ -70,7 +66,7 @@ inline void Error(Str &&message, Attributes &&...attributes) {
 
 template <typename Str, typename... Attributes>
 inline void Fatal(Str &&message, Attributes &&...attributes) {
-	defaultLogger().Fatal(
+	DefaultLogger().Fatal(
 	    std::forward<Str>(message),
 	    std::forward<Attributes>(attributes)...
 	);
