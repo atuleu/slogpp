@@ -32,7 +32,7 @@ TEST(Formatters, DurationT) {
 
 	for (const auto &data : testdata) {
 		std::string result;
-		EXPECT_NO_THROW(slog::details::FormatTo(data.Duration, false, result));
+		EXPECT_NO_THROW(slog::details::FormatTo(data.Duration, result));
 		EXPECT_EQ(result, data.Expected);
 	}
 }
@@ -56,7 +56,7 @@ TEST(Formatters, TimeT) {
 
 	for (const auto &data : testdata) {
 		std::string result;
-		EXPECT_NO_THROW(slog::details::FormatTo(data.Time, false, result));
+		EXPECT_NO_THROW(slog::details::FormatTo(data.Time, result));
 		EXPECT_EQ(result, data.Expected);
 	}
 }
@@ -109,7 +109,16 @@ TEST(Formatters, JSON) {
 	            )
 	        ),
 	    },
-
+	    {
+	        .Name = "ASCII",
+	        .Expected =
+	            R"--({"time":"1970-01-02T00:00:00.000Z","level":"INFO","message":"Hello\nWorld\t!"})--",
+	        .Input = std::make_shared<details::Record<0>>(
+	            ts,
+	            Level::Info,
+	            "Hello\nWorld\t!"
+	        ),
+	    },
 	};
 
 	for (const auto &data : testdata) {
