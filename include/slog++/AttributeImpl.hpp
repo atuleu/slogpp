@@ -74,12 +74,12 @@ inline Attribute Group(Str &&key, Attributes &&...attributes) noexcept {
 template <
     typename Str,
     std::enable_if_t<std::is_convertible_v<Str, std::string>, bool>>
-inline Attribute Error(Str &&what) noexcept {
+inline Attribute Err(Str &&what) noexcept {
 	return Attribute{"error", std::forward<Str>(what)};
 }
 
-inline Attribute Error(const std::exception &e) noexcept {
-	return Error(e.what());
+inline Attribute Err(const std::exception &e) noexcept {
+	return Err(e.what());
 }
 
 inline bool Attribute::operator==(const Attribute &other) const noexcept {

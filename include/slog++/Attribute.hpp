@@ -100,9 +100,9 @@ Attribute Group(Str &&key, Attributes &&...attributes) noexcept;
 template <
     typename Str,
     std::enable_if_t<std::is_convertible_v<Str, std::string>, bool> = true>
-Attribute Error(Str &&what) noexcept;
+Attribute Err(Str &&what) noexcept;
 
-Attribute Error(const std::exception &e) noexcept;
+Attribute Err(const std::exception &e) noexcept;
 
 } // namespace slog
 
