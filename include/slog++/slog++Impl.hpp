@@ -8,6 +8,11 @@
 
 namespace slog {
 
+inline Logger<0> &defaultLogger() {
+	static Logger<0> instance{BuildSink()};
+	return instance;
+}
+
 namespace details {
 
 inline std::shared_ptr<slog::Sink> BuildSink(const SinkConfig &config) {
