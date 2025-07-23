@@ -11,8 +11,10 @@ class BaseSinkConfig;
 
 class Sink {
 public:
-	using RecordVariant =
-	    std::variant<const Record *, std::unique_ptr<const Record>>;
+	using RecordVariant = std::variant<
+	    const Record *,
+	    std::unique_ptr<const Record>,
+	    std::shared_ptr<const Record>>;
 
 	virtual ~Sink() = default;
 

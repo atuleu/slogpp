@@ -75,3 +75,5 @@ inline void Fatal(Str &&message, Attributes &&...attributes) {
 } // namespace slog
 
 #include "slog++Impl.hpp"
+
+#include "TeeSink.hpp"

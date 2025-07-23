@@ -65,13 +65,15 @@ Logger<N>::Log(Level level, Str &&msg, Attributes &&...attributes) const {
 		d_sink->Log(&record);
 		return;
 	}
-
-	d_sink->Log(std::make_unique<const details::Record<RecordSize>>(
-	    level,
-	    std::forward<Str>(msg),
-	    d_attributes,
-	    std::forward<Attributes>(attributes)...
-	));
+	using Ptr = std::unique_ptr<const Record>;
+	d_sink->Log(
+	    std::forward<Ptr>(std::make_unique<const details::Record<RecordSize>>(
+	        level,
+	        std::forward<Str>(msg),
+	        d_attributes,
+	        std::forward<Attributes>(attributes)...
+	    ))
+	);
 }
 
 template <>
@@ -95,12 +97,14 @@ Logger<0>::Log(Level level, Str &&msg, Attributes &&...attributes) const {
 		d_sink->Log(&record);
 		return;
 	}
-
-	d_sink->Log(std::make_unique<const details::Record<RecordSize>>(
-	    level,
-	    std::forward<Str>(msg),
-	    std::forward<Attributes>(attributes)...
-	));
+	using Ptr = std::unique_ptr<const Record>;
+	d_sink->Log(
+	    std::forward<Ptr>(std::make_unique<const details::Record<RecordSize>>(
+	        level,
+	        std::forward<Str>(msg),
+	        std::forward<Attributes>(attributes)...
+	    ))
+	);
 }
 
 } // namespace slog

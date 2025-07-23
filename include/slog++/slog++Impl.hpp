@@ -2,6 +2,7 @@
 
 #include "Config.hpp"
 #include "FileSink.hpp"
+#include "TeeSink.hpp"
 #include "slog++.hpp"
 
 #include <stdexcept>
@@ -20,7 +21,8 @@ inline std::shared_ptr<slog::Sink> BuildSink(const SinkConfig &config) {
 	return std::visit(
 	    [](auto &&config) -> std::shared_ptr<slog::Sink> {
 		    using T = std::decay_t<decltype(config)>;
-		    if constexpr (std::is_same_v<T, ProgramOutputSinkConfig> || std::is_same_v<T, FileSinkConfig>) {
+		    if constexpr (std::is_same_v<T, ProgramOutputSinkConfig> ||
+		                  std::is_same_v<T, FileSinkConfig>) {
 			    if (config.async) {
 				    if (config.withLocking) {
 					    return Ptr(new FileSink<AsyncMtSafe>(config));
@@ -54,16 +56,13 @@ inline std::shared_ptr<Sink> BuildSink(Options &&...options) {
 		return details::BuildSink(config.sinks.front());
 	}
 
-	throw std::logic_error("Multiple sink per logger isn't supported yet");
-
 	std::vector<std::shared_ptr<Sink>> sinks;
 	sinks.reserve(config.sinks.size());
 	for (const auto &sinkConfig : config.sinks) {
 		sinks.push_back(details::BuildSink(sinkConfig));
 	}
 
-	// TODO: need implementation of a multisink
-	return nullptr;
+	return std::make_shared<details::MultiSink>(std::move(sinks));
 }
 
 } // namespace slog
