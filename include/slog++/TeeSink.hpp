@@ -114,4 +114,9 @@ static std::shared_ptr<Sink> TeeSink(Sinks &&...sinks) {
 	std::vector<std::shared_ptr<Sink>> _sinks = {std::forward<Sinks>(sinks)...};
 	return std::make_shared<details::MultiSink>(std::move(_sinks));
 }
+
+static std::shared_ptr<Sink> TeeSink(std::vector<std::shared_ptr<Sink>> &&sinks
+) {
+	return std::make_shared<details::MultiSink>(std::move(sinks));
+}
 } // namespace slog
