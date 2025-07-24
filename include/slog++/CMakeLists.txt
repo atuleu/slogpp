@@ -41,6 +41,7 @@ set(TEST_SRC_FILES
 	ConfigTest.cpp #
 	utils/ObjectPoolTest.cpp #
 	slog++Test.cpp #
+	TeeSinkTest.cpp
 )
 
 set(TEST_HDR_FILES

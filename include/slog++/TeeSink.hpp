@@ -22,11 +22,6 @@ public:
 		update();
 	}
 
-	MultiSink(const std::initializer_list<SinkPtr> &sinks)
-	    : d_sinks{sinks} {
-		update();
-	};
-
 	inline bool AllocateOnStack() const noexcept override {
 		return d_allocateOnStack;
 	}
@@ -116,7 +111,7 @@ private:
 
 template <typename... Sinks>
 static std::shared_ptr<Sink> TeeSink(Sinks &&...sinks) {
-
-	return std::make_shared<details::MultiSink>({std::forward(sinks)...});
+	std::vector<std::shared_ptr<Sink>> _sinks = {std::forward<Sinks>(sinks)...};
+	return std::make_shared<details::MultiSink>(std::move(_sinks));
 }
 } // namespace slog

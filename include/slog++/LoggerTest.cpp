@@ -1,6 +1,8 @@
 #include "LoggerTest.hpp"
 #include "gmock/gmock.h"
 
+#include "MatcherTest.hpp"
+
 namespace slog {
 
 void LoggerTest::SetUp() {
@@ -16,34 +18,10 @@ void LoggerTest::TearDown() {
 
 using ::testing::_;
 using ::testing::AllOf;
-using ::testing::ElementsAreArray;
 using ::testing::Eq;
-using ::testing::Field;
 using ::testing::InSequence;
 using ::testing::Return;
 using ::testing::StrEq;
-using ::testing::VariantWith;
-
-inline constexpr auto HasLevel = [](const auto &level) {
-	return VariantWith<const Record *>(Field("level", &Record::level, Eq(level))
-	);
-};
-
-inline constexpr auto HasMessage = [](const auto &message) {
-	return VariantWith<const Record *>(
-	    Field("message", &Record::message, StrEq(message))
-	);
-};
-
-template <typename... Attributes>
-auto HasAttributes(Attributes &&...attributes) {
-	std::initializer_list<Attribute> attrs = {
-	    static_cast<Attribute>(attributes)...,
-	};
-	return VariantWith<const Record *>(
-	    Field("attributes", &Record::attributes, ElementsAreArray(attrs))
-	);
-}
 
 TEST_F(LoggerTest, LogHelperFunction) {
 
@@ -83,9 +61,9 @@ TEST_F(LoggerTest, LogHelperFunction) {
 		EXPECT_CALL(
 		    *sink,
 		    Log(AllOf(
-		        HasLevel(data.level),
-		        HasMessage(data.message),
-		        HasAttributes()
+		        HasLevel<const Record *>(data.level),
+		        HasMessage<const Record *>(data.message),
+		        HasAttributes<const Record *>()
 		    ))
 		);
 
@@ -114,9 +92,9 @@ TEST_F(LoggerTest, AttributeLogging) {
 		EXPECT_CALL(
 		    *sink,
 		    Log(AllOf(
-		        HasLevel(Level::Info),
-		        HasMessage("with attribute"),
-		        HasAttributes(Int("status", 200))
+		        HasLevel<const Record *>(Level::Info),
+		        HasMessage<const Record *>("with attribute"),
+		        HasAttributes<const Record *>(Int("status", 200))
 		    ))
 		);
 	}
@@ -135,9 +113,9 @@ TEST_F(LoggerTest, AttributePropagation) {
 		EXPECT_CALL(
 		    *sink,
 		    Log(AllOf(
-		        HasLevel(Level::Warn),
-		        HasMessage("unknown resource"),
-		        HasAttributes(
+		        HasLevel<const Record *>(Level::Warn),
+		        HasMessage<const Record *>("unknown resource"),
+		        HasAttributes<const Record *>(
 		            String("request", "https://example.com"),
 		            Int("status", 404)
 		        )
