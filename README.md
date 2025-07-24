@@ -86,7 +86,7 @@ auto loggerConsole = slog::Logger<0>(stderrSink); // note number of default logg
 auto loggerFile = slog::Logger<0>(fileSink);
 
 // A logger to both
-auto logger = slog::Logger(std::make_shared<slog::MultiSink(stderrSink,fileSink));
+auto logger = slog::Logger(slog::TeeSink(stderrSink,fileSink));
 
 // A Logger that outputs to both stderr and a file with different levels:
 auto logger = slog::Logger<0>(slog::BuildSink(
@@ -100,7 +100,7 @@ auto logger = slog::Logger<0>(slog::BuildSink(
     )));
 
 loggerConsole.Info("Hello console!"); // only on stderr
-loggerFile.Info("Hello file!"); // only on 
+loggerFile.Info("Hello file!"); // only on
 logger.Info("Hello World!");
 ```
 
@@ -120,6 +120,3 @@ Don't forget to give the project a star! Thanks for your support.
 
 ## License
 Distributed under the MIT License. See LICENSE for more information.
-
-  
-
