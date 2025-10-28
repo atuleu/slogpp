@@ -84,6 +84,74 @@ public:
 		    std::forward<Str>(msg),
 		    std::forward<Attributes>(attributes)...);
 	};
+#ifndef NDEBUG
+	template <typename Str, typename... Attributes>
+	inline void DTrace(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Trace,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
+	};
+
+	template <typename Str, typename... Attributes>
+	inline void DDebug(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Debug,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
+	};
+
+	template <typename Str, typename... Attributes>
+	inline void DInfo(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Info,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
+	};
+
+	template <typename Str, typename... Attributes>
+	inline void DWarn(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Info,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
+	};
+
+	template <typename Str, typename... Attributes>
+	inline void DError(Str &&msg, Attributes &&...attributes) const {
+		Log(Level::Info,
+		    std::forward<Str>(msg),
+		    std::forward<Attributes>(attributes)...);
+	};
+
+#else
+	template <typename Str, typename... Attributes>
+	inline void DTrace(Str &&msg, Attributes &&...attributes) const {
+		(void)sizeof...(attributes);
+		(void)sizeof(msg);
+	}
+
+	template <typename Str, typename... Attributes>
+	inline void DDebug(Str &&msg, Attributes &&...attributes) const {
+		(void)sizeof...(attributes);
+		(void)sizeof(msg);
+	}
+
+	template <typename Str, typename... Attributes>
+	inline void DInfo(Str &&msg, Attributes &&...attributes) const {
+		(void)sizeof...(attributes);
+		(void)sizeof(msg);
+	}
+
+	template <typename Str, typename... Attributes>
+	inline void DWarn(Str &&msg, Attributes &&...attributes) const {
+		(void)sizeof...(attributes);
+		(void)sizeof(msg);
+	}
+
+	template <typename Str, typename... Attributes>
+	inline void DError(Str &&msg, Attributes &&...attributes) const {
+		(void)sizeof...(attributes);
+		(void)sizeof(msg);
+	}
+
+#endif
 
 private:
 	std::shared_ptr<Sink>    d_sink;
