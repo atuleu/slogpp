@@ -108,14 +108,14 @@ public:
 
 	template <typename Str, typename... Attributes>
 	inline void DWarn(Str &&msg, Attributes &&...attributes) const {
-		Log(Level::Info,
+		Log(Level::Warn,
 		    std::forward<Str>(msg),
 		    std::forward<Attributes>(attributes)...);
 	};
 
 	template <typename Str, typename... Attributes>
 	inline void DError(Str &&msg, Attributes &&...attributes) const {
-		Log(Level::Info,
+		Log(Level::Error,
 		    std::forward<Str>(msg),
 		    std::forward<Attributes>(attributes)...);
 	};
