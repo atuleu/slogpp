@@ -99,6 +99,12 @@ Attribute Group(Str &&key, Attributes &&...attributes) noexcept;
 
 template <
     typename Str,
+    typename T,
+    std::enable_if_t<std::is_pointer_v<T>> * = nullptr>
+Attribute Pointer(Str &&key, T value) noexcept;
+
+template <
+    typename Str,
     std::enable_if_t<std::is_convertible_v<Str, std::string>, bool> = true>
 Attribute Err(Str &&what) noexcept;
 
@@ -106,4 +112,4 @@ Attribute Err(const std::exception &e) noexcept;
 
 } // namespace slog
 
-#include "AttributeImpl.hpp"
+#include "AttributeImpl.hpp" // IWYU pragma: keep

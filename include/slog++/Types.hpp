@@ -42,8 +42,15 @@ protected:
 
 typedef std::shared_ptr<details::Group> GroupPtr;
 
-using Value = std::
-    variant<bool, int64_t, double, std::string, DurationT, TimeT, GroupPtr>;
+using Value = std::variant<
+    bool,
+    int64_t,
+    double,
+    std::string,
+    DurationT,
+    TimeT,
+    GroupPtr,
+    void *>;
 
 using Buffer = std::string;
 

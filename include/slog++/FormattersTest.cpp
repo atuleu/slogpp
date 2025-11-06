@@ -37,6 +37,24 @@ TEST(Formatters, DurationT) {
 	}
 }
 
+TEST(Formatters, Pointer) {
+	struct TestData {
+		void       *Pointer;
+		std::string Expected;
+	};
+
+	std::vector<TestData> testdata = {
+	    {nullptr, "nullptr"},
+	    {(void *)(0x1234), "0x1234"},
+	};
+
+	for (const auto &data : testdata) {
+		std::string result;
+		EXPECT_NO_THROW(slog::details::FormatTo(data.Pointer, result));
+		EXPECT_EQ(result, data.Expected);
+	}
+}
+
 TEST(Formatters, TimeT) {
 	struct TestData {
 		TimeT       Time;

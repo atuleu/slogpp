@@ -86,4 +86,9 @@ inline bool Attribute::operator==(const Attribute &other) const noexcept {
 	return key == other.key && value == other.value;
 }
 
+template <typename Str, typename T, std::enable_if_t<std::is_pointer_v<T>> *>
+Attribute Pointer(Str &&key, T value) noexcept {
+	return Attribute{std::forward<Str>(key), static_cast<void *>(value)};
+}
+
 } // namespace slog

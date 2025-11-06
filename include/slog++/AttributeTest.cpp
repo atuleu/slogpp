@@ -70,6 +70,15 @@ TEST_F(AttributeTest, DurationT) {
 	);
 }
 
+TEST_F(AttributeTest, Pointer) {
+	auto pointer = std::make_unique<int>(42);
+	auto p       = Pointer("pointer", pointer.get());
+	EXPECT_EQ(p.key, "pointer");
+	EXPECT_NO_THROW({
+		EXPECT_EQ(std::get<void *>(p.value), (void *)pointer.get());
+	});
+}
+
 TEST_F(AttributeTest, TimeT) {
 	auto epoch            = std::chrono::system_clock::time_point{};
 	auto oneDayAfterEpoch = epoch + std::chrono::hours(24);
