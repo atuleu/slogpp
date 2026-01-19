@@ -36,9 +36,9 @@ public:
 	 */
 	template <typename Str, size_t M, typename... Attributes>
 	Record(
-	    Level                           level,
-	    Str	                       &&message,
-	    const std::array<Attribute, M> &copiedAttributes,
+	    Level                      level,
+	    Str                      &&message,
+	    const Array<Attribute, M> &copiedAttributes,
 	    Attributes &&...attributes
 	) noexcept;
 
@@ -60,7 +60,7 @@ public:
 	) noexcept;
 
 private:
-	std::array<Attribute, N> d_data;
+	details::Array<Attribute, N> d_data;
 };
 
 template <> class Record<0> : public slog::Record {

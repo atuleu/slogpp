@@ -4,14 +4,15 @@
 
 #include <type_traits>
 
+#include "utils/Array.hpp"
+
 namespace slog {
 
 namespace details {
 
 template <class T>
-auto test_duration_castable(int) -> decltype(
-    std::chrono::duration_cast<DurationT>(std::declval<T>()), std::true_type{}
-);
+auto test_duration_castable(int
+) -> decltype(std::chrono::duration_cast<DurationT>(std::declval<T>()), std::true_type{});
 
 template <class> auto test_duration_castable(...) -> std::false_type;
 
@@ -22,9 +23,8 @@ struct is_duration_castable
           (decltype(test_duration_castable<From>(0))::value)> {};
 
 template <class T>
-auto test_time_castable(int) -> decltype(
-    std::chrono::time_point_cast<DurationT>(std::declval<T>()), std::true_type{}
-);
+auto test_time_castable(int
+) -> decltype(std::chrono::time_point_cast<DurationT>(std::declval<T>()), std::true_type{});
 
 template <class> auto test_time_castable(...) -> std::false_type;
 
@@ -54,7 +54,7 @@ public:
 	};
 
 private:
-	std::array<Attribute, N> d_data;
+	details::Array<Attribute, N> d_data;
 };
 
 template <> class GroupData<0> : public Group {};

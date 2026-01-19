@@ -27,9 +27,8 @@ template <
     size_t N,
     typename... U,
     std::enable_if_t<(N + sizeof...(U)) >= 1> * = nullptr>
-std::array<T, N + sizeof...(U)>
-append(const std::array<T, N> &a, U &&...values) {
-	std::array<T, N + sizeof...(U)> result{};
+Array<T, N + sizeof...(U)> append(const Array<T, N> &a, U &&...values) {
+	Array<T, N + sizeof...(U)> result{};
 	std::copy(a.begin(), a.end(), result.begin());
 	std::size_t index = N - 1;
 	((result[++index] = std::forward<U>(values)), ...);
@@ -39,9 +38,9 @@ append(const std::array<T, N> &a, U &&...values) {
 template <size_t N>
 template <typename Str, size_t M, typename... Attributes>
 inline Record<N>::Record(
-    Level                           level,
-    Str                           &&message,
-    const std::array<Attribute, M> &copiedAttributes,
+    Level                      level,
+    Str                      &&message,
+    const Array<Attribute, M> &copiedAttributes,
     Attributes &&...attributes
 ) noexcept
     : slog::Record{level, std::forward<Str>(message)}
