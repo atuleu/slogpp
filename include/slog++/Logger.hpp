@@ -15,8 +15,10 @@ public:
 
 	Logger(std::shared_ptr<Sink> sink) noexcept;
 
-	inline void SetSink(std::shared_ptr<Sink> sink) {
-		d_sink = std::move(sink);
+	inline std::shared_ptr<Sink> SetSink(std::shared_ptr<Sink> sink) {
+		auto oldSink = std::move(d_sink);
+		d_sink       = std::move(sink);
+		return std::move(oldSink);
 	}
 
 	void From(Level lvl) const noexcept;
