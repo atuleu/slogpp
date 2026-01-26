@@ -1,6 +1,7 @@
 #include "LoggerTest.hpp"
 #include "gmock/gmock.h"
 
+#include "Logger.hpp"
 #include "MatcherTest.hpp"
 
 namespace slog {
@@ -49,7 +50,12 @@ TEST_F(LoggerTest, LogHelperFunction) {
 	     [this](const std::string &msg) { logger->Error(msg); }},
 	    {Level::Fatal,
 	     "fatal-message",
-	     [this](const std::string &msg) { logger->Fatal(msg); }},
+	     [this](const std::string &msg) {
+		     bool aborted = false;
+		     details::setAbortFunction([&aborted]() { aborted = true; });
+		     logger->Fatal(msg);
+		     EXPECT_TRUE(aborted);
+	     }},
 	};
 
 	for (const auto &data : testdata) {

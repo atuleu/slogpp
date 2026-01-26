@@ -3,11 +3,20 @@
 #include "Attribute.hpp"
 #include "Level.hpp"
 
+#include <functional>
 #include <memory>
-#include <type_traits>
 
 namespace slog {
 class Sink;
+
+namespace details {
+typedef std::function<void()> AbortFunction;
+static AbortFunction          s_abortFunction = std::abort;
+
+static inline void setAbortFunction(AbortFunction &&abort) {
+	s_abortFunction = std::move(abort);
+}
+} // namespace details
 
 template <size_t N> class Logger {
 public:
@@ -72,6 +81,7 @@ public:
 		Log(Level::Fatal,
 		    std::forward<Str>(msg),
 		    std::forward<Attributes>(attributes)...);
+		details::s_abortFunction();
 	};
 #ifndef NDEBUG
 	template <typename Str, typename... Attributes>
