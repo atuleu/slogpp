@@ -123,15 +123,16 @@ TEST(BaseSinkConfig, Options) {
 
 TEST(ProgramOutputSinkConfig, Default) {
 	ProgramOutputSinkConfig defaultValue{};
-	EXPECT_FALSE(defaultValue.stdout);
+	EXPECT_FALSE(defaultValue.toStdout);
 	EXPECT_FALSE(defaultValue.disabledColor);
 	EXPECT_FALSE(defaultValue.forceColor);
 }
 
-ProgramOutputSinkConfig
-buildProgramOutputSinkConfig(bool stdout, bool disabledColor, bool forceColor) {
+ProgramOutputSinkConfig buildProgramOutputSinkConfig(
+    bool toStdout, bool disabledColor, bool forceColor
+) {
 	ProgramOutputSinkConfig config;
-	config.stdout        = stdout;
+	config.toStdout      = toStdout;
 	config.disabledColor = disabledColor;
 	config.forceColor    = forceColor;
 	return config;
@@ -141,7 +142,11 @@ auto ProgramOutputSinkConfigAreEqual(const ProgramOutputSinkConfig &config) {
 	using namespace ::testing;
 	return AllOf(
 	    BasicSinkConfigEqual(config),
-	    Field("stdout", &ProgramOutputSinkConfig::stdout, Eq(config.stdout)),
+	    Field(
+	        "stdout",
+	        &ProgramOutputSinkConfig::toStdout,
+	        Eq(config.toStdout)
+	    ),
 	    Field(
 	        "disabledColor",
 	        &ProgramOutputSinkConfig::disabledColor,

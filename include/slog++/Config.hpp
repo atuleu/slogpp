@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <functional>
 #include <string>
 #include <variant>
@@ -28,7 +29,7 @@ struct BaseSinkConfig {
 };
 
 struct ProgramOutputSinkConfig : BaseSinkConfig {
-	bool stdout        = false;
+	bool toStdout      = false;
 	bool disabledColor = false;
 	bool forceColor    = false;
 

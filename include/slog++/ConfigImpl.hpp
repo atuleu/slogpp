@@ -5,7 +5,11 @@
 #include "Level.hpp"
 #include <type_traits>
 
-#include <unistd.h>
+#ifdef _WIN32
+#include <io.h> // For _isatty() and _fileno() on Windows
+#else
+#include <unistd.h> // For isatty() and fileno() on POSIX systems
+#endif
 
 namespace slog {
 
@@ -53,7 +57,7 @@ inline Option<BaseSinkConfig> WithLevel(Levels... levels) {
 }
 
 inline Option<ProgramOutputSinkConfig> WithStdoutOutput() {
-	return [](ProgramOutputSinkConfig &config) { config.stdout = true; };
+	return [](ProgramOutputSinkConfig &config) { config.toStdout = true; };
 }
 
 inline Option<ProgramOutputSinkConfig> WithForceColor() {
@@ -94,10 +98,9 @@ inline void Sanitize(Config &config) {
 	// if no sink, add a default synchronous sink to STDERR, without locking
 	// with Text format.
 	if (config.sinks.empty()) {
-		WithProgramOutput(
-		    WithFormat(OutputFormat::TEXT),
-		    FromLevel(Level::Info)
-		)(config);
+		WithProgramOutput(WithFormat(OutputFormat::TEXT), FromLevel(Level::Info))(
+		    config
+		);
 	}
 
 	// if async sync are needed, set wanted threadpool size.
@@ -115,7 +118,11 @@ inline void Sanitize(Config &config) {
 }
 
 inline bool IsATTY(std::FILE *file) {
+#ifdef _WIN32
+	return _isatty(_fileno(file)) != 0;
+#else
 	return isatty(fileno(file));
+#endif
 };
 
 } // namespace details
@@ -139,8 +146,15 @@ inline Formatter ProgramOutputSinkConfig::Formatter() const noexcept {
 		return &RecordToRawText;
 	}
 
-	if (forceColor == true ||
-	    details::IsATTY(this->stdout == true ? ::stdout : stderr)) {
+	FILE *outputStream = nullptr;
+#ifdef _WIN32
+	// On Windows, stdout/stderr are macros, so we use the underlying function
+	outputStream = this->toStdout ? __acrt_iob_func(1) : __acrt_iob_func(2);
+#else
+	outputStream = this->toStdout ? stdout : stderr;
+#endif
+
+	if (forceColor == true || details::IsATTY(outputStream)) {
 		return &RecordToANSIText;
 	}
 	return &RecordToRawText;

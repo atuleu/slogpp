@@ -22,7 +22,16 @@ public:
 
 	inline FileSink(const ProgramOutputSinkConfig &config)
 	    : Base(config.levels, config.Formatter()) {
-		d_file = FilePtr(config.stdout ? stdout : stderr, [](FILE *f) {});
+		FILE *outputStream = nullptr;
+#ifdef _WIN32
+		// On Windows, stdout/stderr are macros, so we use the underlying
+		// function
+		outputStream =
+		    config.toStdout ? __acrt_iob_func(1) : __acrt_iob_func(2);
+#else
+		outputStream = config.toStdout ? stdout : stderr;
+#endif
+		d_file = FilePtr(outputStream, [](FILE *f) {});
 	}
 
 	void Log(const Buffer &buffer) {
