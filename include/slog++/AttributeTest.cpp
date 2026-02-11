@@ -1,6 +1,7 @@
 #include "AttributeTest.hpp"
 
 #include "Attribute.hpp"
+#include "gmock/gmock.h"
 #include <chrono>
 #include <gtest/gtest.h>
 #include <variant>
@@ -123,6 +124,27 @@ TEST_F(AttributeTest, Error) {
 	    Err(std::runtime_error("something went wrong")),
 	    (Attribute{"error", "something went wrong"})
 	);
+}
+
+TEST_F(AttributeTest, Location) {
+	auto loc = Location();
+	EXPECT_EQ(loc.key, "location");
+	EXPECT_NO_THROW({
+		const auto &group = *std::get<GroupPtr>(loc.value);
+		ASSERT_EQ(group.attributes.size(), 3);
+		EXPECT_EQ(group.attributes[0].key, "function");
+		EXPECT_EQ(
+		    std::get<std::string>(group.attributes[0].value),
+		    "virtual void slog::AttributeTest_Location_Test::TestBody()"
+		);
+		EXPECT_EQ(group.attributes[1].key, "file");
+		EXPECT_THAT(
+		    std::get<std::string>(group.attributes[1].value),
+		    ::testing::EndsWith("include/slog++/AttributeTest.cpp")
+		);
+		EXPECT_EQ(group.attributes[2].key, "line");
+		EXPECT_EQ(std::get<long>(group.attributes[2].value), 130);
+	});
 }
 
 TEST_F(AttributeTest, ByReference) {

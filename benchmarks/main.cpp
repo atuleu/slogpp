@@ -2,7 +2,6 @@
 #include "Benchmarker.hpp"
 #include <chrono>
 #include <fstream>
-#include <thread>
 
 #include "Types.hpp"
 #include "slog++/Config.hpp"
@@ -44,16 +43,14 @@ struct FstreamLogger {
 	void operator()(const BenchmarkData &data) {
 
 		auto [value, units] = Humanize(data.duration);
-		using pretty::operator<<;
-		stream << Timepoint::clock::now() << " INFO "
-		       << R"--( " new data " )--"
-		       << "code=" << data.code                      //
-		       << " value=" << data.value                   //
-		       << " duration=" << value << units            //
-		       << " time=" << data.time                     //
-		       << " request.url=" << data.request.url       //
-		       << " request.status=" << data.request.status //
-		       << std::endl;
+		pretty::operator<<(stream, Timepoint::clock::now())
+		    << " INFO " << R"--( " new data " )--" << "code=" << data.code //
+		    << " value=" << data.value                                     //
+		    << " duration=" << value << units                              //
+		    << " time=" << data.time                                       //
+		    << " request.url=" << data.request.url                         //
+		    << " request.status=" << data.request.status                   //
+		    << std::endl;
 	}
 };
 
@@ -121,16 +118,14 @@ struct GLogLogger {
 
 	void operator()(const BenchmarkData &data) const {
 		auto [value, units] = Humanize(data.duration);
-		using pretty::operator<<;
-		LOG(INFO) << Timepoint::clock::now() << " INFO "
-		          << R"--( " new data " )--"
-		          << "code=" << data.code                      //
-		          << " value=" << data.value                   //
-		          << " duration=" << value << units            //
-		          << " time=" << data.time                     //
-		          << " request.url=" << data.request.url       //
-		          << " request.status=" << data.request.status //
-		          << std::endl;
+		pretty::operator<<(LOG(INFO), Timepoint::clock::now())
+		    << " INFO " << R"--( " new data " )--" << "code=" << data.code //
+		    << " value=" << data.value                                     //
+		    << " duration=" << value << units                              //
+		    << " time=" << data.time                                       //
+		    << " request.url=" << data.request.url                         //
+		    << " request.status=" << data.request.status                   //
+		    << std::endl;
 	}
 };
 

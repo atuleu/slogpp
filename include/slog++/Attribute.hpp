@@ -6,6 +6,10 @@
 
 #include "utils/Array.hpp"
 
+#if __cplusplus >= 202002L
+#include <source_location>
+#endif
+
 namespace slog {
 
 namespace details {
@@ -67,49 +71,64 @@ template <
     typename Str,
     typename Integer,
     std::enable_if_t<std::is_integral_v<std::decay_t<Integer>>> * = nullptr>
-Attribute Int(Str &&key, Integer value) noexcept;
+constexpr Attribute Int(Str &&key, Integer value) noexcept;
 
 template <
     typename Str,
     typename Floating,
     std::enable_if_t<std::is_floating_point_v<Floating>> * = nullptr>
-Attribute Float(Str &&key, Floating value) noexcept;
+constexpr Attribute Float(Str &&key, Floating value) noexcept;
 
 template <
     typename Str,
     typename T,
     std::enable_if_t<std::is_convertible_v<T, std::string>> * = nullptr>
-Attribute String(Str &&key, T &&value) noexcept;
+constexpr Attribute String(Str &&key, T &&value) noexcept;
 
 template <
     typename Str,
     typename DurationType,
     std::enable_if_t<details::is_duration_castable<DurationType>::value> * =
         nullptr>
-Attribute Duration(Str &&key, DurationType &&value) noexcept;
+constexpr Attribute Duration(Str &&key, DurationType &&value) noexcept;
 
 template <
     typename Str,
     typename Timepoint,
     std::enable_if_t<details::is_time_castable<Timepoint>::value> * = nullptr>
-Attribute Time(Str &&key, Timepoint &&timepoint) noexcept;
+constexpr Attribute Time(Str &&key, Timepoint &&timepoint) noexcept;
 
 template <typename Str, typename... Attributes>
-Attribute Group(Str &&key, Attributes &&...attributes) noexcept;
+constexpr Attribute Group(Str &&key, Attributes &&...attributes) noexcept;
 
 template <
     typename Str,
     typename T,
     std::enable_if_t<std::is_pointer_v<T>> * = nullptr>
-Attribute Pointer(Str &&key, T value) noexcept;
+constexpr Attribute Pointer(Str &&key, T value) noexcept;
 
 template <
     typename Str,
     std::enable_if_t<std::is_convertible_v<Str, std::string>, bool> = true>
-Attribute Err(Str &&what) noexcept;
+constexpr Attribute Err(Str &&what) noexcept;
 
-Attribute Err(const std::exception &e) noexcept;
+constexpr Attribute Err(const std::exception &e) noexcept;
 
 } // namespace slog
+
+#if __cplusplus >= 202002L
+namespace slog {
+constexpr Attribute Location(
+    const std::source_location location = std::source_location::current()
+) noexcept {
+	return Group(
+	    "location",
+	    String("function", location.function_name()),
+	    String("file", location.file_name()),
+	    Int("line", location.line())
+	);
+}
+} // namespace slog
+#endif
 
 #include "AttributeImpl.hpp" // IWYU pragma: keep

@@ -26,7 +26,7 @@ project(
 
 message(STATUS "Building slogpp ${slogpp_FULL_VERSION}")
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 include(FetchContent)
