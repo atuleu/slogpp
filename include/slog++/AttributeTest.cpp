@@ -3,6 +3,7 @@
 #include "Attribute.hpp"
 #include "gmock/gmock.h"
 #include <chrono>
+#include <exception>
 #include <gtest/gtest.h>
 #include <variant>
 
@@ -118,12 +119,24 @@ TEST_F(AttributeTest, Group) {
 	});
 }
 
+class Exception : public std::exception {
+public:
+	const char *message() const noexcept {
+		return "foo";
+	}
+
+	const char *what() const noexcept override {
+		return "foo: bar";
+	}
+};
+
 TEST_F(AttributeTest, Error) {
 	EXPECT_EQ(Err("oops"), (Attribute{"error", "oops"}));
 	EXPECT_EQ(
 	    Err(std::runtime_error("something went wrong")),
 	    (Attribute{"error", "something went wrong"})
 	);
+	EXPECT_EQ(Err(Exception{}), (Attribute{"error", "foo"}));
 }
 
 TEST_F(AttributeTest, Location) {
@@ -143,7 +156,7 @@ TEST_F(AttributeTest, Location) {
 		    ::testing::EndsWith("include/slog++/AttributeTest.cpp")
 		);
 		EXPECT_EQ(group.attributes[2].key, "line");
-		EXPECT_EQ(std::get<long>(group.attributes[2].value), 130);
+		EXPECT_EQ(std::get<long>(group.attributes[2].value), 143);
 	});
 }
 

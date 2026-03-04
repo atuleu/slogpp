@@ -81,8 +81,21 @@ inline constexpr Attribute Err(Str &&what) noexcept {
 	return Attribute{"error", std::forward<Str>(what)};
 }
 
-inline constexpr Attribute Err(const std::exception &e) noexcept {
-	return Err(e.what());
+namespace details {
+template <typename T>
+concept HasMessageMember = requires(const T &e) {
+	{ e.message() } -> std::convertible_to<std::string>;
+};
+} // namespace details
+
+template <typename E>
+    requires std::derived_from<std::decay_t<E>, std::exception>
+inline constexpr Attribute Err(const E &e) noexcept {
+	if constexpr (details::HasMessageMember<std::decay_t<E>>) {
+		return Err(e.message());
+	} else {
+		return Err(e.what());
+	}
 }
 
 inline bool Attribute::operator==(const Attribute &other) const noexcept {

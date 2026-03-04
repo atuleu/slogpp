@@ -112,7 +112,9 @@ template <
     std::enable_if_t<std::is_convertible_v<Str, std::string>, bool> = true>
 constexpr Attribute Err(Str &&what) noexcept;
 
-constexpr Attribute Err(const std::exception &e) noexcept;
+template <typename E>
+    requires std::derived_from<std::decay_t<E>, std::exception>
+constexpr Attribute Err(const E &e) noexcept;
 
 } // namespace slog
 
