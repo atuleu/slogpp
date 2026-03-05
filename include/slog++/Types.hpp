@@ -43,6 +43,7 @@ protected:
 typedef std::shared_ptr<details::Group> GroupPtr;
 
 using Value = std::variant<
+    std::monostate,
     bool,
     int64_t,
     double,

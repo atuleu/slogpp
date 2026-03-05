@@ -9,6 +9,7 @@
 #include <ctime>
 #include <limits>
 #include <type_traits>
+#include <variant>
 
 namespace slog {
 
@@ -407,27 +408,33 @@ inline const std::string &levelColor(Level level) {
 // helper constant for the visitor #3
 template <class> inline constexpr bool always_false_v = false;
 
-inline void attributeToJSON(const Attribute &attribute, Buffer &buffer) {
-	buffer += "\"" + attribute.key + "\":";
+inline void attributeToJSON(
+    const Attribute &attribute, Buffer &buffer, const std::string &sep
+) {
 	std::visit(
-	    [&buffer](auto &&arg) {
-		    using T = std::decay_t<decltype(arg)>;       // cast away references
-		    if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
-			    auto prefix = '{';
+	    [&buffer, &key = attribute.key, &sep](auto &&arg) {
+		    using T = std::decay_t<decltype(arg)>; // cast away references
+		    if constexpr (std::is_same_v<T, std::monostate>) {
+			    return;
+		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
+			    buffer += sep + "\"" + key + "\":";
+			    bool once = true;
 			    for (const auto &attr : arg->attributes) {
-				    buffer += prefix;
-				    prefix = ',';
-				    attributeToJSON(attr, buffer);
+				    attributeToJSON(attr, buffer, once ? "{" : ",");
+				    once = false;
 			    }
 			    buffer += "}";
 		    } else if constexpr (std::is_same_v<T,
 		                                        std::string>) { // formatter
+			    buffer += sep + "\"" + key + "\":";
 			    details::JSONFormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else if constexpr (std::is_same_v<T, bool> ||
 		                         std::is_same_v<T, int64_t> ||
 		                         std::is_same_v<T, double>) {
+			    buffer += sep + "\"" + key + "\":";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else {
+			    buffer += sep + "\"" + key + "\":";
 			    buffer += "\"";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 			    buffer += "\"";
@@ -443,20 +450,19 @@ inline void attributeToText(
 	auto name = groupPrefix + attribute.key;
 	std::visit(
 	    [&buffer, &name](auto &&arg) {
-		    using T = std::decay_t<decltype(arg)>;       // cast away references
-		    if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
+		    using T = std::decay_t<decltype(arg)>; // cast away references
+		    if constexpr (std::is_same_v<T, std::monostate>) {
+			    return;
+		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
 			    auto prefix = name + ".";
-			    auto sep    = "";
 			    for (const auto &attr : arg->attributes) {
-				    buffer += sep;
-				    sep = " ";
 				    attributeToText(attr, prefix, buffer);
 			    }
 		    } else if constexpr (std::is_same_v<T, std::string>) {
-			    buffer += name += "=";
+			    buffer += " " + name += "=";
 			    details::TextFormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else { // formatter
-			    buffer += name + "=";
+			    buffer += " " + name + "=";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    }
 	    },
@@ -474,9 +480,11 @@ inline void attributeToTree(
 
 	std::visit(
 	    [&, prefix, parentIsLast = isLast](auto &&arg) {
-		    using T = std::decay_t<decltype(arg)>;       // cast away references
-		    if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a
-			                                             // group
+		    using T = std::decay_t<decltype(arg)>; // cast away references
+		    if constexpr (std::is_same_v<T, std::monostate>) {
+			    return;
+		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a
+			                                                    // group
 			    buffer += prefix + attribute.key;
 
 			    auto newTreePrefix = parentIsLast ? (parentPrefix + "    ")
@@ -512,8 +520,7 @@ inline void RecordToJSON(const Record &record, std::string &buffer) {
 	details::JSONFormatTo(record.message, buffer);
 
 	for (const Attribute &attribute : record.attributes) {
-		buffer += ",";
-		details::attributeToJSON(attribute, buffer);
+		details::attributeToJSON(attribute, buffer, ",");
 	}
 
 	buffer += "}";
@@ -527,7 +534,6 @@ inline void RecordToRawText(const Record &record, Buffer &buffer) {
 	details::TextFormatTo(record.message, buffer);
 
 	for (const Attribute &attribute : record.attributes) {
-		buffer += " ";
 		details::attributeToText(attribute, "", buffer);
 	}
 }

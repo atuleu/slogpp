@@ -1,4 +1,5 @@
 #include "Formatters.hpp"
+#include "Attribute.hpp"
 
 #include <chrono>
 #include <gtest/gtest.h>
@@ -64,8 +65,8 @@ TEST(Formatters, TimeT) {
 	using namespace std::chrono;
 	std::vector<TestData> testdata = {
 	    {TimeT{} + hours(48), "1970-01-03T00:00:00.000Z"},
-	    {TimeT{} + hours(24) + nanoseconds(1),
-	     "1970-01-02T00:00:00.000000001Z"},
+	    {TimeT{} + hours(24) + nanoseconds(1), "1970-01-02T00:00:00.000000001Z"
+	    },
 	    {TimeT{} + milliseconds(999) + nanoseconds(30),
 	     "1970-01-01T00:00:00.999000030Z"},
 	    {TimeT{} + microseconds(999), "1970-01-01T00:00:00.000999Z"},
@@ -102,12 +103,13 @@ TEST(Formatters, JSON) {
 	    {
 	        "WithFields",
 	        R"--({"time":"1970-01-02T00:00:00.000Z","level":"INFO","message":"simple attribute logging","anInt":1,"aDouble":1.5,"aString":"hello world","aDuration":"32µs","aTimestamp":"1970-01-01T00:00:00.000Z"})--",
-	        std::make_shared<details::Record<5>>(
+	        std::make_shared<details::Record<6>>(
 	            ts,
 	            Level::Info,
 	            "simple attribute logging",
 	            Int("anInt", 1),
 	            Float("aDouble", 1.5),
+	            Attribute{},
 	            String("aString", "hello world"),
 	            Duration("aDuration", std::chrono::microseconds(32)),
 	            Time("aTimestamp", TimeT{})
@@ -166,12 +168,13 @@ TEST(Formatters, RawText) {
 	    {
 	        "WithFields",
 	        R"--(1970-01-02T00:00:00.000Z ERROR "simple attribute logging" anInt=1 aDouble=1.5 aString="hello world" aDuration=32µs aTimestamp=1970-01-01T00:00:00.000Z)--",
-	        std::make_shared<details::Record<5>>(
+	        std::make_shared<details::Record<6>>(
 	            ts,
 	            Level::Error,
 	            "simple attribute logging",
 	            Int("anInt", 1),
 	            Float("aDouble", 1.5),
+	            Attribute{},
 	            String("aString", "hello world"),
 	            Duration("aDuration", std::chrono::microseconds(32)),
 	            Time("aTimestamp", TimeT{})
@@ -227,12 +230,13 @@ TEST(Formatters, ANSIText) {
 ├── aString="hello world"
 ├── aDuration=32ms
 └── aTimestamp=1970-01-01T00:00:00.000Z)--",
-	        std::make_shared<details::Record<5>>(
+	        std::make_shared<details::Record<6>>(
 	            ts,
 	            Level::Error,
 	            "simple attribute logging",
 	            Int("anInt", 1),
 	            Float("aDouble", 1.5),
+	            Attribute{},
 	            String("aString", "hello world"),
 	            Duration("aDuration", std::chrono::milliseconds(32)),
 	            Time("aTimestamp", TimeT{})

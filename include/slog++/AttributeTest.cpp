@@ -9,6 +9,27 @@
 
 namespace slog {
 
+TEST_F(AttributeTest, Location) {
+	auto loc = Location();
+	EXPECT_EQ(loc.key, "location");
+	EXPECT_NO_THROW({
+		const auto &group = *std::get<GroupPtr>(loc.value);
+		ASSERT_EQ(group.attributes.size(), 3);
+		EXPECT_EQ(group.attributes[0].key, "function");
+		EXPECT_EQ(
+		    std::get<std::string>(group.attributes[0].value),
+		    "virtual void slog::AttributeTest_Location_Test::TestBody()"
+		);
+		EXPECT_EQ(group.attributes[1].key, "file");
+		EXPECT_THAT(
+		    std::get<std::string>(group.attributes[1].value),
+		    ::testing::EndsWith("include/slog++/AttributeTest.cpp")
+		);
+		EXPECT_EQ(group.attributes[2].key, "line");
+		EXPECT_EQ(std::get<long>(group.attributes[2].value), 13);
+	});
+}
+
 template <typename T> void testInteger(const std::string &key, T &&value) {
 	SCOPED_TRACE(key);
 	auto a = Int(key, std::forward<T>(value));
@@ -137,27 +158,6 @@ TEST_F(AttributeTest, Error) {
 	    (Attribute{"error", "something went wrong"})
 	);
 	EXPECT_EQ(Err(Exception{}), (Attribute{"error", "foo"}));
-}
-
-TEST_F(AttributeTest, Location) {
-	auto loc = Location();
-	EXPECT_EQ(loc.key, "location");
-	EXPECT_NO_THROW({
-		const auto &group = *std::get<GroupPtr>(loc.value);
-		ASSERT_EQ(group.attributes.size(), 3);
-		EXPECT_EQ(group.attributes[0].key, "function");
-		EXPECT_EQ(
-		    std::get<std::string>(group.attributes[0].value),
-		    "virtual void slog::AttributeTest_Location_Test::TestBody()"
-		);
-		EXPECT_EQ(group.attributes[1].key, "file");
-		EXPECT_THAT(
-		    std::get<std::string>(group.attributes[1].value),
-		    ::testing::EndsWith("include/slog++/AttributeTest.cpp")
-		);
-		EXPECT_EQ(group.attributes[2].key, "line");
-		EXPECT_EQ(std::get<long>(group.attributes[2].value), 143);
-	});
 }
 
 TEST_F(AttributeTest, ByReference) {
