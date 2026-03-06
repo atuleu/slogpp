@@ -15,6 +15,7 @@ set(HDR_FILES
 	utils/ContainerReference.hpp #
 	utils/ObjectPool.hpp #
 	utils/ThreadPool.hpp #
+	details/String.hpp #
 	slog++.hpp #
 	Sink.hpp #
 )
@@ -40,6 +41,7 @@ set(TEST_SRC_FILES
 	FormattersTest.cpp #
 	ConfigTest.cpp #
 	utils/ObjectPoolTest.cpp #
+	details/StringTest.cpp #
 	slog++Test.cpp #
 	TeeSinkTest.cpp
 )

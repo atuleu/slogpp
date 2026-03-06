@@ -17,12 +17,12 @@ TEST_F(AttributeTest, Location) {
 		ASSERT_EQ(group.attributes.size(), 3);
 		EXPECT_EQ(group.attributes[0].key, "function");
 		EXPECT_EQ(
-		    std::get<std::string>(group.attributes[0].value),
+		    std::get<details::String>(group.attributes[0].value).string_view(),
 		    "virtual void slog::AttributeTest_Location_Test::TestBody()"
 		);
 		EXPECT_EQ(group.attributes[1].key, "file");
 		EXPECT_THAT(
-		    std::get<std::string>(group.attributes[1].value),
+		    std::get<details::String>(group.attributes[1].value).string_view(),
 		    ::testing::EndsWith("include/slog++/AttributeTest.cpp")
 		);
 		EXPECT_EQ(group.attributes[2].key, "line");
@@ -76,7 +76,9 @@ template <typename T> void testString(const std::string &key, T &&value) {
 	auto a = String(key, value);
 
 	EXPECT_EQ(a.key, key);
-	EXPECT_NO_THROW({ EXPECT_EQ(std::get<std::string>(a.value), value); });
+	EXPECT_NO_THROW({
+		EXPECT_EQ(std::get<details::String>(a.value).string_view(), value);
+	});
 	EXPECT_THROW(std::get<bool>(a.value), std::bad_variant_access);
 }
 
@@ -132,7 +134,7 @@ TEST_F(AttributeTest, Group) {
 		ASSERT_EQ(group.attributes.size(), 2);
 		EXPECT_EQ(group.attributes[0].key, "request");
 		EXPECT_EQ(
-		    std::get<std::string>(group.attributes[0].value),
+		    std::get<details::String>(group.attributes[0].value).string_view(),
 		    "https://example.com"
 		);
 		EXPECT_EQ(group.attributes[1].key, "status");

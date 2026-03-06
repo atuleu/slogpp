@@ -1,5 +1,6 @@
 #pragma once
 
+#include "details/String.hpp"
 #include "utils/ContainerReference.hpp"
 
 #include <chrono>
@@ -47,7 +48,7 @@ using Value = std::variant<
     bool,
     int64_t,
     double,
-    std::string,
+    details::String,
     DurationT,
     TimeT,
     GroupPtr,

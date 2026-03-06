@@ -4,6 +4,7 @@
 
 #include <type_traits>
 
+#include "details/String.hpp"
 #include "utils/Array.hpp"
 
 #if __cplusplus >= 202002L
@@ -41,8 +42,8 @@ struct is_time_castable : std::integral_constant<
 } // namespace details
 
 struct Attribute {
-	std::string key;
-	Value       value;
+	details::String key;
+	Value           value;
 
 	bool operator==(const Attribute &other) const noexcept;
 };
@@ -82,7 +83,7 @@ constexpr Attribute Float(Str &&key, Floating value) noexcept;
 template <
     typename Str,
     typename T,
-    std::enable_if_t<std::is_convertible_v<T, std::string>> * = nullptr>
+    std::enable_if_t<std::is_convertible_v<T, details::String>> * = nullptr>
 constexpr Attribute String(Str &&key, T &&value) noexcept;
 
 template <

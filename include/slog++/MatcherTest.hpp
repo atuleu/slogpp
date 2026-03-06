@@ -1,5 +1,7 @@
 #pragma once
 
+#include <slog++/details/String.hpp>
+
 #include "gmock/gmock.h"
 #include <gmock/gmock.h>
 

@@ -53,7 +53,7 @@ inline void FormatTo(double value, Buffer &buffer) {
 	}
 }
 
-inline void TextFormatTo(const std::string &value, Buffer &buffer) {
+inline void TextFormatTo(const String &value, Buffer &buffer) {
 	bool quote = std::find_if(value.begin(), value.end(), [](char c) {
 		             return std::isspace(c) != 0;
 	             }) != value.end();
@@ -98,7 +98,7 @@ inline void FormatTo(void *pointer, Buffer &buffer) {
 	}
 }
 
-inline bool needEscaping(const std::string &value) noexcept {
+inline bool needEscaping(const String &value) noexcept {
 	return std::any_of(value.begin(), value.end(), [](unsigned char c) {
 		return c == '\\' || c == '\"' || c < 0x20 || c > 0x7f;
 	});
@@ -133,12 +133,12 @@ inline void appendHex(uint16_t ch, Buffer &buffer) {
 	buffer.push_back(hexDigits[2 * lower + 1]);
 }
 
-inline void JSONFormatTo(const std::string &value, Buffer &buffer) {
+inline void JSONFormatTo(const String &value, Buffer &buffer) {
 	buffer.reserve(buffer.size() + value.size() + 2);
 	buffer.push_back('\"');
 
 	if (!needEscaping(value)) {
-		buffer += value;
+		buffer += value.string_view();
 		buffer.push_back('\"');
 		return;
 	}
@@ -417,25 +417,33 @@ inline void attributeToJSON(
 		    if constexpr (std::is_same_v<T, std::monostate>) {
 			    return;
 		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
-			    buffer += sep + "\"" + key + "\":";
+			    buffer += sep + "\"";
+			    buffer += key.string_view();
+			    buffer += "\":";
 			    bool once = true;
 			    for (const auto &attr : arg->attributes) {
 				    attributeToJSON(attr, buffer, once ? "{" : ",");
 				    once = false;
 			    }
 			    buffer += "}";
-		    } else if constexpr (std::is_same_v<T,
-		                                        std::string>) { // formatter
-			    buffer += sep + "\"" + key + "\":";
+		    } else if constexpr (std::is_same_v<
+		                             T,
+		                             details::String>) { // formatter
+			    buffer += sep + "\"";
+			    buffer += key.string_view();
+			    buffer += "\":";
 			    details::JSONFormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else if constexpr (std::is_same_v<T, bool> ||
 		                         std::is_same_v<T, int64_t> ||
 		                         std::is_same_v<T, double>) {
-			    buffer += sep + "\"" + key + "\":";
+			    buffer += sep + "\"";
+			    buffer += key.string_view();
+			    buffer += "\":";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else {
-			    buffer += sep + "\"" + key + "\":";
-			    buffer += "\"";
+			    buffer += sep + "\"";
+			    buffer += key.string_view();
+			    buffer += "\":\"";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 			    buffer += "\"";
 		    }
@@ -447,7 +455,8 @@ inline void attributeToJSON(
 inline void attributeToText(
     const Attribute &attribute, const std::string &groupPrefix, Buffer &buffer
 ) {
-	auto name = groupPrefix + attribute.key;
+	auto name = groupPrefix;
+	name += attribute.key.string_view();
 	std::visit(
 	    [&buffer, &name](auto &&arg) {
 		    using T = std::decay_t<decltype(arg)>; // cast away references
@@ -458,7 +467,7 @@ inline void attributeToText(
 			    for (const auto &attr : arg->attributes) {
 				    attributeToText(attr, prefix, buffer);
 			    }
-		    } else if constexpr (std::is_same_v<T, std::string>) {
+		    } else if constexpr (std::is_same_v<T, String>) {
 			    buffer += " " + name += "=";
 			    details::TextFormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else { // formatter
@@ -485,7 +494,8 @@ inline void attributeToTree(
 			    return;
 		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a
 			                                                    // group
-			    buffer += prefix + attribute.key;
+			    buffer += prefix;
+			    buffer += attribute.key.string_view();
 
 			    auto newTreePrefix = parentIsLast ? (parentPrefix + "    ")
 			                                      : (parentPrefix + "│   ");
@@ -495,12 +505,16 @@ inline void attributeToTree(
 				    bool isLast = ++index == arg->attributes.size();
 				    attributeToTree(attr, newTreePrefix, isLast, buffer);
 			    }
-		    } else if constexpr (std::is_same_v<T, std::string>) {
-			    buffer += prefix + attribute.key + "=";
+		    } else if constexpr (std::is_same_v<T, String>) {
+			    buffer += prefix;
+			    buffer += attribute.key.string_view();
+			    buffer += "=";
 			    details::TextFormatTo(std::forward<decltype(arg)>(arg), buffer);
 
 		    } else {
-			    buffer += prefix + attribute.key + "=";
+			    buffer += prefix;
+			    buffer += attribute.key.string_view();
+			    buffer += "=";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    }
 	    },
