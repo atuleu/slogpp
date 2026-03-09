@@ -8,6 +8,8 @@
 
 #include <cstdint>
 
+#include <array>
+
 #if defined(_MSC_VER)
 #include <intrin.h>
 #pragma intrinsic(_byteswap_uint64)
@@ -31,13 +33,13 @@ class String {
 #elif defined(_MSC_VER)
 		return _byteswap_uint64(v);
 #else
-		// portable fallback
-		return (v << 56) | ((v & 0x000000000000FF00ull) << 40) |
-		       ((v & 0x0000000000FF0000ull) << 24) |
-		       ((v & 0x00000000FF000000ull) << 8) |
-		       ((v & 0x000000FF00000000ull) >> 8) |
-		       ((v & 0x0000FF0000000000ull) >> 24) |
-		       ((v & 0x00FF000000000000ull) >> 40) | (v >> 56);
+		portable fallback return (v << 56) |
+		    ((v & 0x000000000000FF00ull) << 40) |
+		    ((v & 0x0000000000FF0000ull) << 24) |
+		    ((v & 0x00000000FF000000ull) << 8) |
+		    ((v & 0x000000FF00000000ull) >> 8) |
+		    ((v & 0x0000FF0000000000ull) >> 24) |
+		    ((v & 0x00FF000000000000ull) >> 40) | (v >> 56);
 #endif
 	}
 
@@ -90,30 +92,44 @@ public:
 		if (isSmall()) {
 			return;
 		}
-		if (d.large.data != nullptr) {
-			::operator delete[](d.large.data);
-		}
+		delete[] d.large.data;
 	}
 
-	String(const String &other)
-	    : d{other.d} {
+	String(const String &other) {
 		if (other.isSmall() == true) {
+			d.small = other.d.small;
 			// SSO: no heap memory, we are done.
 			return;
 		}
-		d.large.data = new char[other.size() + 1];
+		d.large.size_BE = other.d.large.size_BE;
+		d.large.data    = new char[other.size() + 1];
 		memcpy(d.large.data, other.d.large.data, other.size() + 1);
 	}
 
 	String &operator=(const String &other) {
-		d = other.d;
+		if (this == &other) {
+			return *this;
+		}
 		if (other.isSmall() == true) {
+			if (isSmall() == false) {
+				delete[] d.large.data;
+			}
 			// SSO: no heap memory, we are done.
+			d = other.d;
 			return *this;
 		}
 		// must copy it.
-		d.large.data = new char[other.size() + 1];
-		memcpy(d.large.data, other.d.large.data, other.size() + 1);
+		const auto allocatedSize = other.size() + 1;
+
+		auto newBytes = new char[allocatedSize];
+
+		if (isSmall() == false) {
+			delete[] d.large.data;
+		}
+
+		d.large.data    = newBytes;
+		d.large.size_BE = other.d.large.size_BE;
+		memcpy(d.large.data, other.d.large.data, allocatedSize);
 		return *this;
 	}
 
@@ -126,6 +142,14 @@ public:
 	}
 
 	String &operator=(String &&other) {
+		if (this == &other) {
+			return *this;
+		}
+
+		if (isSmall() == false && d.large.data != nullptr) {
+			delete[] d.large.data;
+		}
+
 		d                     = other.d;
 		// we efficiently empty the other string, keeping for ourself its
 		// potential heap memory
@@ -175,9 +199,13 @@ public:
 
 private:
 	inline constexpr bool isSmall() const noexcept {
+
 		// check if the LSB of the struct is set. If yes, we are a long string,
-		// otherwise a small one.
-		return (d.small.available & 0x01) == 0;
+		// otherwise a small one. Due to lifetime object of union, in order not
+		// to have UB, we need to manually read memory.
+		const auto asBytes =
+		    std::bit_cast<std::array<uint8_t, sizeof(StackData)>>(d);
+		return (asBytes[sizeof(StackData) - 1] & 0x01u) == 0;
 	}
 
 	struct SmallRep {
