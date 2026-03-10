@@ -51,7 +51,7 @@ public:
 
 	constexpr String()
 	    : d{.small = SmallRep{.available = 15 << 1}} {
-		d.small.data[0] = 0;
+		d.small.data[0] = '\0';
 	}
 
 	constexpr String(const std::string &s) {
@@ -66,7 +66,7 @@ public:
 		}
 
 		memcpy(d.small.data, s.data(), s.size());
-		d.small.data[s.size()] = 0;
+		d.small.data[s.size()] = '\0';
 		d.small.available      = (15 - s.size()) << 1;
 	}
 
@@ -101,8 +101,8 @@ public:
 			// SSO: no heap memory, we are done.
 			return;
 		}
-		d.large.size_BE = other.d.large.size_BE;
 		d.large.data    = new char[other.size() + 1];
+		d.large.size_BE = other.d.large.size_BE;
 		memcpy(d.large.data, other.d.large.data, other.size() + 1);
 	}
 
@@ -110,6 +110,7 @@ public:
 		if (this == &other) {
 			return *this;
 		}
+
 		if (other.isSmall() == true) {
 			if (isSmall() == false) {
 				delete[] d.large.data;
@@ -137,8 +138,7 @@ public:
 	    : d{other.d} {
 		// we efficiently empty the other string, keeping for ourself its
 		// potential heap memory
-		other.d.small         = SmallRep{.available = 15 << 1};
-		other.d.small.data[0] = 0;
+		other.reset();
 	}
 
 	String &operator=(String &&other) {
@@ -150,11 +150,10 @@ public:
 			delete[] d.large.data;
 		}
 
-		d                     = other.d;
+		d = other.d;
 		// we efficiently empty the other string, keeping for ourself its
 		// potential heap memory
-		other.d.small         = SmallRep{.available = 15 << 1};
-		other.d.small.data[0] = 0;
+		other.reset();
 		return *this;
 	}
 
@@ -198,6 +197,11 @@ public:
 	}
 
 private:
+	inline void reset() noexcept {
+		d.small         = SmallRep{.available = 15 << 1};
+		d.small.data[0] = '\0';
+	}
+
 	inline constexpr bool isSmall() const noexcept {
 
 		// check if the LSB of the struct is set. If yes, we are a long string,

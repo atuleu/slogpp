@@ -35,5 +35,17 @@ TEST_F(StringTest, RepresentationIsCorrect) {
 	}
 }
 
+TEST_F(StringTest, LargeStringWithTrailingNullDoesNotKeepExactSize) {
+	// due to the always odd-encoding of a size, a std::string containing
+	// trailing null character will report the wrong size. The implementation
+	// deliberatly do not test and avoid this condition. These objects are for
+	// logging, and such strings contain no useful information for logging.
+	std::string s(17, 'x'); // forces large representation (> 15)
+	s[16] = '\0';           // last payload byte is null
+	String r(s);
+	// In that case, our string reports a different size.
+	EXPECT_EQ(r.size(), s.size() - 1);
+}
+
 } // namespace details
 } // namespace slog
