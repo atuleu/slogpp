@@ -42,19 +42,32 @@ protected:
 } // namespace details
 
 typedef std::shared_ptr<details::Group> GroupPtr;
+using Buffer = std::string;
+
+#ifndef SLOGPP_NO_DETAILS_STRING
+using StringType = details::String;
+#define appendToBuffer(b, str)                                                 \
+	do {                                                                       \
+		b += (str).string_view();                                              \
+	} while (0)
+#else
+using StringType = std::string;
+#define appendToBuffer(b, str)                                                 \
+	do {                                                                       \
+		b += (str);                                                            \
+	} while (0)
+#endif
 
 using Value = std::variant<
     std::monostate,
     bool,
     int64_t,
     double,
-    details::String,
+    StringType,
     DurationT,
     TimeT,
     GroupPtr,
     void *>;
-
-using Buffer = std::string;
 
 class Record;
 

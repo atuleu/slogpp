@@ -19,10 +19,8 @@ void LoggerTest::TearDown() {
 
 using ::testing::_;
 using ::testing::AllOf;
-using ::testing::Eq;
 using ::testing::InSequence;
 using ::testing::Return;
-using ::testing::StrEq;
 
 TEST_F(LoggerTest, LogHelperFunction) {
 

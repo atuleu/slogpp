@@ -16,13 +16,13 @@ TEST_F(AttributeTest, Location) {
 		const auto &group = *std::get<GroupPtr>(loc.value);
 		ASSERT_EQ(group.attributes.size(), 3);
 		EXPECT_EQ(group.attributes[0].key, "function");
-		EXPECT_EQ(
-		    std::get<details::String>(group.attributes[0].value).string_view(),
+		EXPECT_STREQ(
+		    std::get<StringType>(group.attributes[0].value).c_str(),
 		    "virtual void slog::AttributeTest_Location_Test::TestBody()"
 		);
 		EXPECT_EQ(group.attributes[1].key, "file");
 		EXPECT_THAT(
-		    std::get<details::String>(group.attributes[1].value).string_view(),
+		    std::get<StringType>(group.attributes[1].value).c_str(),
 		    ::testing::EndsWith("include/slog++/AttributeTest.cpp")
 		);
 		EXPECT_EQ(group.attributes[2].key, "line");
@@ -76,9 +76,15 @@ template <typename T> void testString(const std::string &key, T &&value) {
 	auto a = String(key, value);
 
 	EXPECT_EQ(a.key, key);
-	EXPECT_NO_THROW({
-		EXPECT_EQ(std::get<details::String>(a.value).string_view(), value);
-	});
+	if constexpr (std::is_same_v<T, const char *>) {
+		EXPECT_NO_THROW({
+			EXPECT_STREQ(std::get<StringType>(a.value).c_str(), value);
+		});
+	} else if constexpr (std::is_same_v<T, std::string>) {
+		EXPECT_NO_THROW({
+			EXPECT_STREQ(std::get<StringType>(a.value).c_str(), value.c_str());
+		});
+	}
 	EXPECT_THROW(std::get<bool>(a.value), std::bad_variant_access);
 }
 
@@ -133,8 +139,8 @@ TEST_F(AttributeTest, Group) {
 		const auto &group = *std::get<GroupPtr>(a.value);
 		ASSERT_EQ(group.attributes.size(), 2);
 		EXPECT_EQ(group.attributes[0].key, "request");
-		EXPECT_EQ(
-		    std::get<details::String>(group.attributes[0].value).string_view(),
+		EXPECT_STREQ(
+		    std::get<StringType>(group.attributes[0].value).c_str(),
 		    "https://example.com"
 		);
 		EXPECT_EQ(group.attributes[1].key, "status");

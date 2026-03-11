@@ -22,9 +22,17 @@ inline constexpr auto HasLevel = [](const auto &level) {
 
 template <typename T>
 inline constexpr auto HasMessage = [](const auto &message) {
+#ifndef SLOGPP_NO_DETAILS_STRING
+	return VariantWith<T>(Pointee(Field(
+	    "message",
+	    &Record::message,
+	    Property(&details::String::c_str, StrEq(message))
+	)));
+#else
 	return VariantWith<T>(
 	    Pointee(Field("message", &Record::message, StrEq(message)))
 	);
+#endif
 };
 
 template <typename T, typename... Attributes>

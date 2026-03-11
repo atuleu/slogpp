@@ -52,6 +52,7 @@ set(TEST_HDR_FILES
 	MockSink.hpp #
 )
 
+
 set(SLOGPP_CPP_CONTENT "")
 foreach(src ${SRC_FILES})
 	set(SLOGPP_CPP_CONTENT "${SLOGPP_CPP_CONTENT}#include \"${src}\"\n")
@@ -63,6 +64,7 @@ add_executable(slog++-tests ${HDR_FILES} ${SRC_FILES} ${TEST_HDR_FILES}
 							${TEST_SRC_FILES}
 )
 
+
 target_link_libraries(slog++-tests GTest::gtest_main GTest::gmock_main)
 
 gtest_discover_tests(slog++-tests)
@@ -71,3 +73,7 @@ add_dependencies(check slog++-tests)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_library(slog++ STATIC ${HDR_FILES} ${SRC_FILES} slog.cpp)
 add_dependencies(slog++ slogpp_Version)
+if(NOT SLOGPP_SMALLER_STRING_OBJECT)
+	target_compile_definitions(slog++-tests PUBLIC SLOGPP_NO_DETAILS_STRING)
+	target_compile_definitions(slog++ PUBLIC SLOGPP_NO_DETAILS_STRING)
+endif()

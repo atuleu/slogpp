@@ -1,8 +1,14 @@
+option(SLOGPP_SMALLER_STRING_OBJECT Off "Logging will use a smaller string objects")
+
 if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	# externally linked via FetchContent. Simply create slog++::slog++ interface
 	# target
 	add_library(slog++::slog++ INTERFACE IMPORTED GLOBAL)
 	target_include_directories(slog++::slog++ INTERFACE include)
+	if(NOT SLOGPP_SMALLER_STRING_OBJECT)
+		target_compile_definitions(slog++::slog++ INTERFACE SLOGGPP_NO_DETAILS_STRING)
+	endif()
+
 
 	return()
 endif(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -28,6 +34,7 @@ message(STATUS "Building slogpp ${slogpp_FULL_VERSION}")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
+
 
 include(FetchContent)
 FetchContent_Declare(

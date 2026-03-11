@@ -42,10 +42,9 @@ struct is_time_castable : std::integral_constant<
 } // namespace details
 
 struct Attribute {
-	details::String key;
-	Value           value;
-
-	bool operator==(const Attribute &other) const noexcept;
+	StringType key;
+	Value      value;
+	bool       operator==(const Attribute &other) const noexcept;
 };
 
 namespace details {

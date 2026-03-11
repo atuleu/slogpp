@@ -1,5 +1,4 @@
 #include "TeeSink.hpp"
-#include "gmock/gmock.h"
 #include <gmock/gmock.h>
 
 #include "Level.hpp"

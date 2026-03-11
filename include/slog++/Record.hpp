@@ -10,7 +10,7 @@ class Record {
 public:
 	TimeT                                timestamp;
 	Level                                level;
-	std::string                          message;
+	StringType                           message;
 	utils::ContainerReference<Attribute> attributes;
 	virtual ~Record() = default;
 

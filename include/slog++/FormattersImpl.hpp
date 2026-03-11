@@ -4,6 +4,7 @@
 #include "Formatters.hpp"
 #include "Level.hpp"
 #include "Record.hpp"
+#include "Types.hpp"
 #include <cctype>
 #include <charconv>
 #include <ctime>
@@ -53,7 +54,7 @@ inline void FormatTo(double value, Buffer &buffer) {
 	}
 }
 
-inline void TextFormatTo(const String &value, Buffer &buffer) {
+inline void TextFormatTo(const StringType &value, Buffer &buffer) {
 	bool quote = std::find_if(value.begin(), value.end(), [](char c) {
 		             return std::isspace(c) != 0;
 	             }) != value.end();
@@ -98,7 +99,7 @@ inline void FormatTo(void *pointer, Buffer &buffer) {
 	}
 }
 
-inline bool needEscaping(const String &value) noexcept {
+inline bool needEscaping(const StringType &value) noexcept {
 	return std::any_of(value.begin(), value.end(), [](unsigned char c) {
 		return c == '\\' || c == '\"' || c < 0x20 || c > 0x7f;
 	});
@@ -133,12 +134,12 @@ inline void appendHex(uint16_t ch, Buffer &buffer) {
 	buffer.push_back(hexDigits[2 * lower + 1]);
 }
 
-inline void JSONFormatTo(const String &value, Buffer &buffer) {
+inline void JSONFormatTo(const StringType &value, Buffer &buffer) {
 	buffer.reserve(buffer.size() + value.size() + 2);
 	buffer.push_back('\"');
 
 	if (!needEscaping(value)) {
-		buffer += value.string_view();
+		appendToBuffer(buffer, value);
 		buffer.push_back('\"');
 		return;
 	}
@@ -416,9 +417,10 @@ inline void attributeToJSON(
 		    using T = std::decay_t<decltype(arg)>; // cast away references
 		    if constexpr (std::is_same_v<T, std::monostate>) {
 			    return;
-		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
+		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a
+			                                                    // group
 			    buffer += sep + "\"";
-			    buffer += key.string_view();
+			    appendToBuffer(buffer, key);
 			    buffer += "\":";
 			    bool once = true;
 			    for (const auto &attr : arg->attributes) {
@@ -426,23 +428,22 @@ inline void attributeToJSON(
 				    once = false;
 			    }
 			    buffer += "}";
-		    } else if constexpr (std::is_same_v<
-		                             T,
-		                             details::String>) { // formatter
+		    } else if constexpr (std::is_same_v<T,
+		                                        StringType>) { // formatter
 			    buffer += sep + "\"";
-			    buffer += key.string_view();
+			    appendToBuffer(buffer, key);
 			    buffer += "\":";
 			    details::JSONFormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else if constexpr (std::is_same_v<T, bool> ||
 		                         std::is_same_v<T, int64_t> ||
 		                         std::is_same_v<T, double>) {
 			    buffer += sep + "\"";
-			    buffer += key.string_view();
+			    appendToBuffer(buffer, key);
 			    buffer += "\":";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else {
 			    buffer += sep + "\"";
-			    buffer += key.string_view();
+			    appendToBuffer(buffer, key);
 			    buffer += "\":\"";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 			    buffer += "\"";
@@ -456,18 +457,19 @@ inline void attributeToText(
     const Attribute &attribute, const std::string &groupPrefix, Buffer &buffer
 ) {
 	auto name = groupPrefix;
-	name += attribute.key.string_view();
+	appendToBuffer(name, attribute.key);
 	std::visit(
 	    [&buffer, &name](auto &&arg) {
 		    using T = std::decay_t<decltype(arg)>; // cast away references
 		    if constexpr (std::is_same_v<T, std::monostate>) {
 			    return;
-		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a group
+		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a
+			                                                    // group
 			    auto prefix = name + ".";
 			    for (const auto &attr : arg->attributes) {
 				    attributeToText(attr, prefix, buffer);
 			    }
-		    } else if constexpr (std::is_same_v<T, String>) {
+		    } else if constexpr (std::is_same_v<T, StringType>) {
 			    buffer += " " + name += "=";
 			    details::TextFormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else { // formatter
@@ -495,7 +497,7 @@ inline void attributeToTree(
 		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a
 			                                                    // group
 			    buffer += prefix;
-			    buffer += attribute.key.string_view();
+			    appendToBuffer(buffer, attribute.key);
 
 			    auto newTreePrefix = parentIsLast ? (parentPrefix + "    ")
 			                                      : (parentPrefix + "│   ");
@@ -505,15 +507,15 @@ inline void attributeToTree(
 				    bool isLast = ++index == arg->attributes.size();
 				    attributeToTree(attr, newTreePrefix, isLast, buffer);
 			    }
-		    } else if constexpr (std::is_same_v<T, String>) {
+		    } else if constexpr (std::is_same_v<T, StringType>) {
 			    buffer += prefix;
-			    buffer += attribute.key.string_view();
+			    appendToBuffer(buffer, attribute.key);
 			    buffer += "=";
 			    details::TextFormatTo(std::forward<decltype(arg)>(arg), buffer);
 
 		    } else {
 			    buffer += prefix;
-			    buffer += attribute.key.string_view();
+			    appendToBuffer(buffer, attribute.key);
 			    buffer += "=";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    }
