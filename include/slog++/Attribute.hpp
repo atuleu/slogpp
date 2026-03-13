@@ -3,6 +3,7 @@
 #include "Types.hpp"
 
 #include <type_traits>
+#include <variant>
 
 #include "details/String.hpp"
 #include "utils/Array.hpp"
@@ -45,6 +46,10 @@ struct Attribute {
 	StringType key;
 	Value      value;
 	bool       operator==(const Attribute &other) const noexcept;
+
+	inline constexpr bool empty() const noexcept {
+		return std::holds_alternative<std::monostate>(value);
+	}
 };
 
 namespace details {
