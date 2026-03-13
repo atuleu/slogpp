@@ -31,7 +31,7 @@ inline constexpr Attribute Float(Str &&key, Floating value) noexcept {
 template <
     typename Str,
     typename T,
-    std::enable_if_t<std::is_convertible_v<T, details::String>> *>
+    std::enable_if_t<std::is_convertible_v<T, StringType>> *>
 inline constexpr Attribute String(Str &&key, T &&value) noexcept {
 	return Attribute{std::forward<Str>(key), std::forward<T>(value)};
 }

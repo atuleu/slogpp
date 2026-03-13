@@ -87,7 +87,7 @@ constexpr Attribute Float(Str &&key, Floating value) noexcept;
 template <
     typename Str,
     typename T,
-    std::enable_if_t<std::is_convertible_v<T, details::String>> * = nullptr>
+    std::enable_if_t<std::is_convertible_v<T, StringType>> * = nullptr>
 constexpr Attribute String(Str &&key, T &&value) noexcept;
 
 template <

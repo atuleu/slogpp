@@ -10,6 +10,8 @@
 
 #include <array>
 
+#include <filesystem>
+
 #if defined(_MSC_VER)
 #include <intrin.h>
 #pragma intrinsic(_byteswap_uint64)
@@ -54,20 +56,12 @@ public:
 		d.small.data[0] = '\0';
 	}
 
-	constexpr String(const std::string &s) {
-		if (s.size() > 15) {
-			d.large.data = new char[s.size() + 1];
-			memcpy(d.large.data, s.data(), s.size());
-			d.large.data[s.size()] = 0;
-			// size is Big-Endian encoded, so only the last bit should be
-			// always set, and it correspond to the LSB of the struct.
-			d.large.size_BE        = sizeMayBitswap(s.size() | 1);
-			return;
-		}
+	String(const std::filesystem::path &s) {
+		initFromString(s.string());
+	}
 
-		memcpy(d.small.data, s.data(), s.size());
-		d.small.data[s.size()] = '\0';
-		d.small.available      = (15 - s.size()) << 1;
+	constexpr String(const std::string &s) {
+		initFromString(s);
 	}
 
 	constexpr String(const char *c_str) {
@@ -197,6 +191,22 @@ public:
 	}
 
 private:
+	inline constexpr void initFromString(const std::string &s) {
+		if (s.size() > 15) {
+			d.large.data = new char[s.size() + 1];
+			memcpy(d.large.data, s.data(), s.size());
+			d.large.data[s.size()] = 0;
+			// size is Big-Endian encoded, so only the last bit should be
+			// always set, and it correspond to the LSB of the struct.
+			d.large.size_BE        = sizeMayBitswap(s.size() | 1);
+			return;
+		}
+
+		memcpy(d.small.data, s.data(), s.size());
+		d.small.data[s.size()] = '\0';
+		d.small.available      = (15 - s.size()) << 1;
+	}
+
 	inline void reset() noexcept {
 		d.small         = SmallRep{.available = 15 << 1};
 		d.small.data[0] = '\0';
