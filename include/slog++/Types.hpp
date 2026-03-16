@@ -46,13 +46,13 @@ using Buffer = std::string;
 
 #ifndef SLOGPP_NO_DETAILS_STRING
 using StringType = details::String;
-#define appendToBuffer(b, str)                                                 \
+#define SLOGPP_appendToBuffer(b, str)                                          \
 	do {                                                                       \
 		b += (str).string_view();                                              \
 	} while (0)
 #else
 using StringType = std::string;
-#define appendToBuffer(b, str)                                                 \
+#define SLOGPP_appendToBuffer(b, str)                                          \
 	do {                                                                       \
 		b += (str);                                                            \
 	} while (0)

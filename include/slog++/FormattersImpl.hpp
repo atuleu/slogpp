@@ -139,7 +139,7 @@ inline void JSONFormatTo(const StringType &value, Buffer &buffer) {
 	buffer.push_back('\"');
 
 	if (!needEscaping(value)) {
-		appendToBuffer(buffer, value);
+		SLOGPP_appendToBuffer(buffer, value);
 		buffer.push_back('\"');
 		return;
 	}
@@ -420,7 +420,7 @@ inline void attributeToJSON(
 		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a
 			                                                    // group
 			    buffer += sep + "\"";
-			    appendToBuffer(buffer, key);
+			    SLOGPP_appendToBuffer(buffer, key);
 			    buffer += "\":";
 			    bool once = true;
 			    for (const auto &attr : arg->attributes) {
@@ -431,19 +431,19 @@ inline void attributeToJSON(
 		    } else if constexpr (std::is_same_v<T,
 		                                        StringType>) { // formatter
 			    buffer += sep + "\"";
-			    appendToBuffer(buffer, key);
+			    SLOGPP_appendToBuffer(buffer, key);
 			    buffer += "\":";
 			    details::JSONFormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else if constexpr (std::is_same_v<T, bool> ||
 		                         std::is_same_v<T, int64_t> ||
 		                         std::is_same_v<T, double>) {
 			    buffer += sep + "\"";
-			    appendToBuffer(buffer, key);
+			    SLOGPP_appendToBuffer(buffer, key);
 			    buffer += "\":";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    } else {
 			    buffer += sep + "\"";
-			    appendToBuffer(buffer, key);
+			    SLOGPP_appendToBuffer(buffer, key);
 			    buffer += "\":\"";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 			    buffer += "\"";
@@ -457,7 +457,7 @@ inline void attributeToText(
     const Attribute &attribute, const std::string &groupPrefix, Buffer &buffer
 ) {
 	auto name = groupPrefix;
-	appendToBuffer(name, attribute.key);
+	SLOGPP_appendToBuffer(name, attribute.key);
 	std::visit(
 	    [&buffer, &name](auto &&arg) {
 		    using T = std::decay_t<decltype(arg)>; // cast away references
@@ -497,7 +497,7 @@ inline void attributeToTree(
 		    } else if constexpr (std::is_same_v<T, GroupPtr>) { // Is it a
 			                                                    // group
 			    buffer += prefix;
-			    appendToBuffer(buffer, attribute.key);
+			    SLOGPP_appendToBuffer(buffer, attribute.key);
 
 			    auto newTreePrefix = parentIsLast ? (parentPrefix + "    ")
 			                                      : (parentPrefix + "│   ");
@@ -509,13 +509,13 @@ inline void attributeToTree(
 			    }
 		    } else if constexpr (std::is_same_v<T, StringType>) {
 			    buffer += prefix;
-			    appendToBuffer(buffer, attribute.key);
+			    SLOGPP_appendToBuffer(buffer, attribute.key);
 			    buffer += "=";
 			    details::TextFormatTo(std::forward<decltype(arg)>(arg), buffer);
 
 		    } else {
 			    buffer += prefix;
-			    appendToBuffer(buffer, attribute.key);
+			    SLOGPP_appendToBuffer(buffer, attribute.key);
 			    buffer += "=";
 			    details::FormatTo(std::forward<decltype(arg)>(arg), buffer);
 		    }
