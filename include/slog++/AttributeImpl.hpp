@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Attribute.hpp"
+#include "Types.hpp"
 
 #include <exception>
 #include <source_location>
@@ -86,25 +87,44 @@ template <typename T>
 concept HasMessageMember = requires(const T &e) {
 	{ e.message() } -> std::convertible_to<std::string>;
 };
+template <typename T>
+concept HasTraceMember = requires(const T &e) {
+	requires std::is_reference_v<decltype(e.stacktrace())>;
+	requires std::is_const_v<
+	    std::remove_reference_t<decltype(e.stracktrace())>>;
+
+	{ e.trace().to_string(false) } -> std::convertible_to<std::string>;
+};
+
 } // namespace details
 
 template <typename E>
     requires std::derived_from<std::decay_t<E>, std::exception>
 inline constexpr Attribute Err(const E &e) noexcept {
+
 	if constexpr (details::HasMessageMember<std::decay_t<E>>) {
+		if constexpr (details::HasTraceMember<std::decay_t<E>>) {
+			return slog::Group(
+			    "error",
+			    slog::String("message", e.message()),
+			    slog::String("stacktrace", e.trace().to_string(false))
+			);
+		}
 		return Err(e.message());
-	} else {
-		return Err(e.what());
 	}
+	return Err(e.what());
 }
 
-inline bool Attribute::operator==(const Attribute &other) const noexcept {
-	return key == other.key && value == other.value;
-}
+    inline bool Attribute::operator==(const Attribute &other) const noexcept {
+		return key == other.key && value == other.value;
+	}
 
-template <typename Str, typename T, std::enable_if_t<std::is_pointer_v<T>> *>
-Attribute constexpr Pointer(Str &&key, T value) noexcept {
-	return Attribute{std::forward<Str>(key), static_cast<void *>(value)};
-}
+	template <
+	    typename Str,
+	    typename T,
+	    std::enable_if_t<std::is_pointer_v<T>> *>
+	Attribute constexpr Pointer(Str && key, T value) noexcept {
+		return Attribute{std::forward<Str>(key), static_cast<void *>(value)};
+	}
 
 } // namespace slog

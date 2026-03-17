@@ -5,7 +5,6 @@
 #include <type_traits>
 #include <variant>
 
-#include "details/String.hpp"
 #include "utils/Array.hpp"
 
 #if __cplusplus >= 202002L
