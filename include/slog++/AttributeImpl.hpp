@@ -75,6 +75,21 @@ Group(Str &&key, Attributes &&...attributes) noexcept {
 	};
 }
 
+template <typename Str, typename Iter, typename MapFunc>
+constexpr Attribute MapContainer(
+    Str &&key, const Iter &begin, const Iter &end, const MapFunc &mapper
+) {
+	std::vector<Attribute> attributes;
+	attributes.reserve(std::distance(begin, end));
+	for (Iter it = begin; it != end; ++it) {
+		attributes.emplace_back(mapper("#" + std::to_string(it - begin), *it));
+	}
+	return Attribute{
+	    std::forward<Str>(key),
+	    std::make_shared<details::DynamicGroup>(std::move(attributes)),
+	};
+}
+
 template <
     typename Str,
     std::enable_if_t<std::is_convertible_v<Str, std::string>, bool>>
@@ -110,21 +125,18 @@ inline constexpr Attribute Err(const E &e) noexcept {
 			    slog::String("stacktrace", e.trace().to_string(false))
 			);
 		}
-		return Err(e.message());
+		return Attribute{"error", e.message()};
 	}
-	return Err(e.what());
+	return Attribute{"error", e.what()};
 }
 
-    inline bool Attribute::operator==(const Attribute &other) const noexcept {
-		return key == other.key && value == other.value;
-	}
+inline bool Attribute::operator==(const Attribute &other) const noexcept {
+	return key == other.key && value == other.value;
+}
 
-	template <
-	    typename Str,
-	    typename T,
-	    std::enable_if_t<std::is_pointer_v<T>> *>
-	Attribute constexpr Pointer(Str && key, T value) noexcept {
-		return Attribute{std::forward<Str>(key), static_cast<void *>(value)};
-	}
+template <typename Str, typename T, std::enable_if_t<std::is_pointer_v<T>> *>
+Attribute constexpr Pointer(Str &&key, T value) noexcept {
+	return Attribute{std::forward<Str>(key), static_cast<void *>(value)};
+}
 
 } // namespace slog

@@ -6,6 +6,7 @@
 #include <variant>
 
 #include "utils/Array.hpp"
+#include "utils/ContainerReference.hpp"
 
 #if __cplusplus >= 202002L
 #include <source_location>
@@ -67,6 +68,16 @@ private:
 
 template <> class GroupData<0> : public Group {};
 
+class DynamicGroup : public Group {
+public:
+	DynamicGroup(std::vector<Attribute> &&attributes)
+	    : d_data{std::move(attributes)} {
+		this->attributes = utils::ContainerReference<Attribute>(d_data);
+	};
+
+private:
+	std::vector<Attribute> d_data;
+};
 } // namespace details
 
 template <typename Str> Attribute Bool(Str &&key, bool value);
@@ -104,6 +115,11 @@ constexpr Attribute Time(Str &&key, Timepoint &&timepoint) noexcept;
 
 template <typename Str, typename... Attributes>
 constexpr Attribute Group(Str &&key, Attributes &&...attributes) noexcept;
+
+template <typename Str, typename Iter, typename MapFunc>
+constexpr Attribute MapContainer(
+    Str &&key, const Iter &begin, const Iter &end, const MapFunc &mapper
+);
 
 template <
     typename Str,

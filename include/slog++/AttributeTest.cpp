@@ -3,6 +3,7 @@
 #include "Attribute.hpp"
 #include "gmock/gmock.h"
 #include <chrono>
+#include <cstdint>
 #include <exception>
 #include <gtest/gtest.h>
 #include <variant>
@@ -26,7 +27,7 @@ TEST_F(AttributeTest, Location) {
 		    ::testing::EndsWith("include/slog++/AttributeTest.cpp")
 		);
 		EXPECT_EQ(group.attributes[2].key, "line");
-		EXPECT_EQ(std::get<long>(group.attributes[2].value), 13);
+		EXPECT_EQ(std::get<long>(group.attributes[2].value), 14);
 	});
 }
 
@@ -145,6 +146,26 @@ TEST_F(AttributeTest, Group) {
 		);
 		EXPECT_EQ(group.attributes[1].key, "status");
 		EXPECT_EQ(std::get<int64_t>(group.attributes[1].value), 200);
+	});
+}
+
+TEST_F(AttributeTest, Mapping) {
+	std::vector<int> data = {1, 2, 4, 8};
+
+	auto a = MapContainer(
+	    "group",
+	    data.begin(),
+	    data.end(),
+	    [](std::string &&key, int v) { return slog::Int(key, v); }
+	);
+	EXPECT_EQ(a.key, "group");
+	EXPECT_NO_THROW({
+		const auto &group = *std::get<GroupPtr>(a.value);
+		ASSERT_EQ(group.attributes.size(), 4);
+		for (size_t i = 0; i < 4; ++i) {
+			EXPECT_EQ(group.attributes[i].key, "#" + std::to_string(i));
+			EXPECT_EQ(std::get<int64_t>(group.attributes[i].value), data[i]);
+		}
 	});
 }
 
