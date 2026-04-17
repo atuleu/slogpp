@@ -7,7 +7,7 @@
 #include <string>
 #include <variant>
 
-#ifndef SLOGPP_NO_DETAILS_STRING
+#ifdef SLOGPP_SMALLER_STRING
 #include "details/String.hpp"
 #endif
 
@@ -47,7 +47,7 @@ protected:
 typedef std::shared_ptr<details::Group> GroupPtr;
 using Buffer = std::string;
 
-#ifndef SLOGPP_NO_DETAILS_STRING
+#ifdef SLOGPP_SMALLER_STRING
 using StringType = details::String;
 #define SLOGPP_appendToBuffer(b, str)                                          \
 	do {                                                                       \

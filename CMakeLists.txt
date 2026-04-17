@@ -5,8 +5,8 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	# target
 	add_library(slog++::slog++ INTERFACE IMPORTED GLOBAL)
 	target_include_directories(slog++::slog++ INTERFACE include)
-	if(NOT SLOGPP_SMALLER_STRING_OBJECT)
-		target_compile_definitions(slog++::slog++ INTERFACE SLOGGPP_NO_DETAILS_STRING)
+	if(SLOGPP_SMALLER_STRING_OBJECT)
+		target_compile_definitions(slog++::slog++ INTERFACE SLOGPP_SMALLER_STRING)
 	endif()
 
 
