@@ -1,12 +1,15 @@
 #pragma once
 
-#include "details/String.hpp"
 #include "utils/ContainerReference.hpp"
 
 #include <chrono>
 #include <memory>
 #include <string>
 #include <variant>
+
+#ifndef SLOGPP_NO_DETAILS_STRING
+#include "details/String.hpp"
+#endif
 
 namespace slog {
 

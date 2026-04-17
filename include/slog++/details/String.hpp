@@ -1,15 +1,10 @@
 #pragma once
 
+#include <array>
 #include <bit>
 #include <cstddef>
-
-#include <cstring>
-#include <string>
-
 #include <cstdint>
-
-#include <array>
-
+#include <cstring>
 #include <filesystem>
 
 #if defined(_MSC_VER)
